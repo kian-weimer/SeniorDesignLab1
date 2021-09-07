@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import message_service
 
 GPIO.setmode(GPIO.BCM)
 

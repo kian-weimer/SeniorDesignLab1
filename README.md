@@ -3,6 +3,7 @@
 ##Commands to know
 _______________________________________________________
 ####source venv/bin/activate
+- for windows find the activate file and run it
 - Will open the virtualenv
 
 ####pip3 install -r requirements.txt
