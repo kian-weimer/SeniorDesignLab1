@@ -7,3 +7,4 @@ while True:
     print("The temperature is %s celsius" % temperature)
     time.sleep(1)
 
+# https://bigl.es/ds18b20-temperature-sensor-with-python-raspberry-pi/
