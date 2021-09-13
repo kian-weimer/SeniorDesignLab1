@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Javascript</title>
+</head>
+
+<body>
+
+    <div id="target_div"></div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script>
+
+        var div = document.getElementById('target_div');
+	var xmlHttp = new XMLHttpRequest();
+    	xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
+    	xmlHttp.send( null );
+        div.innerHTML +=  xmlHttp.responseText;
+
+    </script>
+
+</body>
+</html>
