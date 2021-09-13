@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+window.onload = function () {		//need to add button w/ button listener that will change between F and C for temp
+
+var limit = 300;		//number y-axis data points
+var y = 50;    			//starting point of the data (only applicable for the example)
+var data = [];								//var to hold the temp information
+var dataSeries = { type: "line" };			//type of graph
+var dataPoints = [];						//adds the current data point to the data var for graphing
+for (var i = 0; i < limit; i ++) {						//this is where we will load our data
+	y += Math.round(Math.random() * 10 - 5);
+	dataPoints.push({
+		x: i,
+		y: y
+	});
+}
+dataSeries.dataPoints = dataPoints;
+data.push(dataSeries);
+
+//Better to construct options first and then pass it as a parameter
+var options = {
+	zoomEnabled: true,
+	animationEnabled: true,		//adds the special effect on startup/refresh
+	title: {
+		text: "Temperature"
+	},
+	axisY: {
+		lineThickness: 1
+	},
+	data: data  // random data
+};
+
+var chart = new CanvasJS.Chart("chartContainer", options);
+
+var startTime = new Date();		//start render timer
+chart.render();					//adds the data to the chart
+var endTime = new Date();		//end render timer
+document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
+
+}
+</script>
+<style>
+	#timeToRender {
+		position:absolute; 
+		top: 8px; 
+		font-size: 20px; 
+		font-weight: bold; 
+		background-color: #d85757;
+		padding: 0px 4px;
+		color: #ffffff;
+	}
+</style>
+</head>
+<body>
+<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+<span id="timeToRender"></span>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+</body>
+</html>
