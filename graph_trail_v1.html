@@ -39,24 +39,106 @@ chart.render();					//adds the data to the chart
 var endTime = new Date();		//end render timer
 document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
 
+document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
+
 }
+
+
+var showingF = true;
+var textToDisplay = "<h2>";
+
+function changeButton(){
+	if(showingF){
+		showingF = false;
+		textToDisplay += "Changed to Celsius</h2>";
+		document.getElementById("test").innerHTML = textToDisplay;
+	}
+}
+
 </script>
 <style>
+
+	body {
+	  /* Style the body */
+		text-align: center;
+		margin-top: 50px;
+		background-color: skyblue;
+		border:5px;
+		border-style:solid;
+		border-color:yellow;
+		margin-right: 200px;
+		margin-left: 200px;
+		border-radius: 10px;
+		padding: 1em;
+	 }
+
+	/* Time to Render styling */
 	#timeToRender {
 		position:absolute; 
-		top: 8px; 
+		top: 71px;
+		left: 221px;
 		font-size: 20px; 
 		font-weight: bold; 
 		background-color: #d85757;
 		padding: 0px 4px;
 		color: #ffffff;
 	}
+
+	/* Cover for the API site link */
+	#whiteCover {
+		position:absolute; 
+		top: 352px;
+	  	right: 223px;
+		font-size: 16px; 
+		font-weight: bold; 
+		background-color: white;
+		padding: 0px 4px;
+		color: white;
+	}
+
+	/* Style the button */
+	.button {
+	  position: absolute;
+	  top: 400px;
+	  right: 210px;
+	  padding: 10px 24px;
+	  font-size: 16px;
+	  margin: 4px 2px;
+	  transition-duration: 0.4s;
+	  cursor: pointer;
+	}
+	
+	.myButton {
+	  background-color: #3333ff;
+	  color: black;
+	  border: 2px solid #555555;
+	}
+	
+	.myButton:hover {
+	  background-color: #555555;
+	  color: white;
+	}
 </style>
 </head>
 <body>
+
 <div id="chartContainer" style="height: 300px; width: 100%;"></div>
 <span id="timeToRender"></span>
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
+
+<!-- Add the button ... will start by showing Fahrenheit temps-->
+<button class="button myButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
+
+<span id="whiteCover"></span>
+
+<div id="test"></div>
+
+
 </body>
 </html>
+
+
+
+
+
