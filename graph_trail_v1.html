@@ -2,7 +2,14 @@
 <html>
 <head>
 <script>
-window.onload = function () {		//need to add button w/ button listener that will change between F and C for temp
+var showingF = true;
+
+window.onload = buildGraph;
+
+function buildGraph(){
+
+var titleF = "Temperature in F";
+var titleC = "Temperature in C";
 
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
@@ -19,12 +26,21 @@ for (var i = 0; i < limit; i ++) {						//this is where we will load our data
 dataSeries.dataPoints = dataPoints;
 data.push(dataSeries);
 
+var title = "";
+
+if(showingF){
+	title = titleF;
+}
+else{
+	title = titleC;
+}
+
 //Better to construct options first and then pass it as a parameter
 var options = {
 	zoomEnabled: true,
-	animationEnabled: true,		//adds the special effect on startup/refresh
+	animationEnabled: false,		//adds the special effect on startup/refresh
 	title: {
-		text: "Temperature"
+		text: title
 	},
 	axisY: {
 		lineThickness: 1
@@ -40,18 +56,19 @@ var endTime = new Date();		//end render timer
 document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
 
 document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
-
 }
 
-
-var showingF = true;
-var textToDisplay = "<h2>";
 
 function changeButton(){
 	if(showingF){
 		showingF = false;
-		textToDisplay += "Changed to Celsius</h2>";
-		document.getElementById("test").innerHTML = textToDisplay;
+		console.log("button pressed");
+		buildGraph();
+	}
+	else{
+		showingF = true;
+		console.log("button pressed again");
+		buildGraph();
 	}
 }
 
