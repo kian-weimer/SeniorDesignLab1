@@ -3,13 +3,15 @@
 <head>
 <script>
 var showingF = true;
-
 window.onload = buildGraph;
 
 function buildGraph(){
 
 var titleF = "Temperature in F";
 var titleC = "Temperature in C";
+
+var recievedData = fetchAsync("http://192.168.0.146:5010/users");
+console.log(recievedData);
 
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
@@ -54,22 +56,29 @@ var startTime = new Date();		//start render timer
 chart.render();					//adds the data to the chart
 var endTime = new Date();		//end render timer
 document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
-
 document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
 }
 
-
 function changeButton(){
 	if(showingF){
-		showingF = false;
-		console.log("button pressed");
-		buildGraph();
+		document.getElementById("tempButton").classList.add("tempFButton");
+		document.getElementById("tempButton").classList.remove("tempCButton");
+		document.getElementById("tempButton").innerHTML = "Click to show Fahrenheit";
 	}
 	else{
-		showingF = true;
-		console.log("button pressed again");
-		buildGraph();
+		document.getElementById("tempButton").classList.add("tempCButton");
+		document.getElementById("tempButton").classList.remove("tempFButton");
+		document.getElementById("tempButton").innerHTML = "Click to show Celsius";
 	}
+	showingF = !showingF;
+	console.log("button pressed");
+	buildGraph();
+}
+
+async function fetchAsync (url) {
+  let response = await fetch(url);
+  let data = await response.json();
+  return data;
 }
 
 </script>
@@ -125,16 +134,28 @@ function changeButton(){
 	  cursor: pointer;
 	}
 	
-	.myButton {
+	.tempCButton {
 	  background-color: #3333ff;
 	  color: black;
 	  border: 2px solid #555555;
 	}
 	
-	.myButton:hover {
+	.tempCButton:hover {
 	  background-color: #555555;
 	  color: white;
 	}
+
+	.tempFButton {
+	  background-color: #33cc33;
+	  color: black;
+	  border: 2px solid #555555;
+	}
+	
+	.tempFButton:hover {
+	  background-color: #555555;
+	  color: white;
+	}
+
 </style>
 </head>
 <body>
@@ -145,12 +166,9 @@ function changeButton(){
 
 
 <!-- Add the button ... will start by showing Fahrenheit temps-->
-<button class="button myButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
+<button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
 
 <span id="whiteCover"></span>
-
-<div id="test"></div>
-
 
 </body>
 </html>
