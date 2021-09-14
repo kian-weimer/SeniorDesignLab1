@@ -6,12 +6,11 @@ var showingF = true;
 window.onload = buildGraph;
 
 function buildGraph(){
-
+	
 var recievedData = JSON.parse(getData());		//get data from our server
 var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
-console.log(times);
 
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
@@ -21,20 +20,22 @@ var dataPoints = [];						//adds the current data point to the data var for grap
 
 for(var i = 0; i < limit; i++){						//this is where we will load our data
 	if(i > 0 && times[i] - times[i-1] > 1){
-		console.log("system is off");
+		var textToDisplay = "<h2>The sensor has been disconnected!!!</h2>";
+		document.getElementById("warnings").innerHTML = textToDisplay;
+		y = null;
+	}
+	else if(showingF){
+		y = tempF[i];
+		document.getElementById("warnings").innerHTML = "";
 	}
 	else{
-		if(showingF){
-			y = tempF[i];
-		}
-		else{
-			y = tempC[i];
-		}
-		dataPoints.push({
-			x: i,
-			y: y
-		});
+		y = tempC[i];
+		document.getElementById("warnings").innerHTML = "";
 	}
+	dataPoints.push({
+		x: i,
+		y: y
+	});
 }
 dataSeries.dataPoints = dataPoints;
 data.push(dataSeries);
@@ -177,6 +178,8 @@ function getData(){
 <div id="chartContainer" style="height: 300px; width: 100%;"></div>
 <span id="timeToRender"></span>
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+<div id="warnings"></div>
 
 <!-- Add the button ... will start by showing Fahrenheit temps-->
 <button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
