@@ -22,5 +22,6 @@ class LCD:
         temp = ThermometerCode.get_temp()        
         self.lcd.clear()
         self.lcd.message = "{:10.2f}".format(temp)
+        return temp
         
     
