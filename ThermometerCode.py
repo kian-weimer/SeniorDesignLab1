@@ -31,17 +31,12 @@ def archive_temp(temp):
 
     df.to_csv(TEMP_FILE, mode='w', index=False, header=True)
 
-sensor = W1ThermSensor()
 
-while True:
-    start_time = time.time()
+def get_temp():
+    sensor = W1ThermSensor()
     temperature = sensor.get_temperature()
     archive_temp(temperature)
-    delay = time.time() - start_time
-    if delay < 1:
-        time.sleep(1 - delay) # wait for the remaining time in 1s
-    else:
-        print(delay)
+    return temperature
     
 
 # https://bigl.es/ds18b20-temperature-sensor-with-python-raspberry-pi/
