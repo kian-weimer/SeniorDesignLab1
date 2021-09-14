@@ -4,7 +4,6 @@ import digitalio
 import ThermometerCode
 
 class LCD:
-
     def __init__(self):
         lcd_columns = 16
         lcd_rows = 2

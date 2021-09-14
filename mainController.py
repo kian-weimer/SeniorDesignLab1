@@ -6,6 +6,12 @@ import sys
 import time
 from LCD import LCD
 
+from multiprocessing import Process, Queue, Value, Manager
+from ctypes import c_bool
+from threading import Thread
+
+from Server import main
+
 
 def button_activated(channel):
     if GPIO.input(16):
@@ -20,6 +26,10 @@ if __name__ == '__main__':
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
     lcd = LCD()
+
+    # Server communication
+    thermometer_plugged_in = Value(c_bool, False)
+    server = Process(target=main, args=(thermometer_plugged_in))
     
     while True:
         start_time = time.time()
