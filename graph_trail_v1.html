@@ -10,8 +10,9 @@ function buildGraph(){
 var titleF = "Temperature in F";
 var titleC = "Temperature in C";
 
-var recievedData = fetchAsync("http://192.168.0.146:5010/users");
-console.log(recievedData);
+var recievedData = getData();
+var jsonData = JSON.parse(recievedData);
+console.log(jsonData);
 
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
@@ -72,13 +73,15 @@ function changeButton(){
 	}
 	showingF = !showingF;
 	console.log("button pressed");
+	getData();
 	buildGraph();
 }
 
-async function fetchAsync (url) {
-  let response = await fetch(url);
-  let data = await response.json();
-  return data;
+function getData(){
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
+    xmlHttp.send( null );
+    return xmlHttp.response;
 }
 
 </script>
@@ -136,7 +139,7 @@ async function fetchAsync (url) {
 	
 	.tempCButton {
 	  background-color: #3333ff;
-	  color: black;
+	  color: white;
 	  border: 2px solid #555555;
 	}
 	
@@ -159,11 +162,12 @@ async function fetchAsync (url) {
 </style>
 </head>
 <body>
+	<!-- used to get temp data-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <div id="chartContainer" style="height: 300px; width: 100%;"></div>
 <span id="timeToRender"></span>
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
-
 
 <!-- Add the button ... will start by showing Fahrenheit temps-->
 <button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
