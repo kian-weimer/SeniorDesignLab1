@@ -12,9 +12,6 @@ from threading import Thread
 
 from Server import main
 
-from ctypes import c_char_p
-
-
 def button_activated(channel):
     if GPIO.input(16):
         GPIO.output(13, 1)
@@ -44,6 +41,10 @@ if __name__ == '__main__':
     GPIO.add_event_detect(6, GPIO.BOTH, callback=switch_activated, bouncetime=50)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
     lcd = LCD()
+
+    # Server communication
+    thermometer_plugged_in = Value(c_bool, False)
+    server = Process(target=main, args=(thermometer_plugged_in))
     
     #GPIO.setup(13,GPIO.OUT, pull_up_down=GPIO.PUD_UP)
 

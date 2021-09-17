@@ -70,6 +70,6 @@ def main(thermometer_plugged_in, LCD_on):
     
     app.run('0.0.0.0', 5010)  # run our Flask app
 
-
 if __name__ == '__main__':
     main(False, False)
+
