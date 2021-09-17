@@ -17,27 +17,39 @@ from ctypes import c_char_p
 
 def button_activated(channel):
     if GPIO.input(16):
-        print("do button things")
-    # TODO Make this turn on the LCD
-
+        GPIO.output(13, 1)
+    else:
+        GPIO.output(13,0)
+        
+def switch_activated(channel):
+    if GPIO.input(16):
+        GPIO.output(13, 1)
+    else:
+        GPIO.output(13,0)
 
 if __name__ == '__main__':
     
     min_temp = 0
     max_temp = 31
-    phone_number = '5635427467'
+    phone_number = ''
     alert_sent = False
+    switch_status = False
     
     #sets up pin 16 as an input for an interupt
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(13, GPIO.OUT) #for turning on and off the LCD
+    GPIO.output(13, 0)
+    GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP)#input from switch
+    GPIO.add_event_detect(6, GPIO.BOTH, callback=switch_activated, bouncetime=50)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
     lcd = LCD()
+    
+    #GPIO.setup(13,GPIO.OUT, pull_up_down=GPIO.PUD_UP)
 
     # Server communication\
-    manager = Manager()
-    thermometer_plugged_in = manager.Value(c_bool, False)
-    LCD_on = manager.Value(c_bool, True)
+    thermometer_plugged_in = Value(c_bool, False)
+    LCD_on = Value(c_bool, True)
     server = Process(target=main, args=(thermometer_plugged_in, LCD_on))
     server.start()
     
