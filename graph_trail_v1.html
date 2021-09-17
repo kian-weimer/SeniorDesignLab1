@@ -31,8 +31,8 @@ var dataPoints = [];						//adds the current data point to the data var for grap
 minTemp = document.getElementById("minTemp").value;
 maxTemp = document.getElementById("maxTemp").value;
 
+
 for(var i = 0; i < limit; i++){						//this is where we will load our data
-	var outOfLimit = false;
 	if(i > 0 && times[i] - times[i-1] > 1){
 		var textToDisplay = "<h2>The sensor has been disconnected!!!</h2>";
 		document.getElementById("warnings").innerHTML = textToDisplay;
@@ -46,7 +46,10 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		y = tempC[i];
 		document.getElementById("warnings").innerHTML = "";
 	}
+
 	if(tempF[i] > maxTemp || tempF[i] < minTemp){
+		console.log(maxTemp);
+	console.log(tempF[i]);
 		var labelPoint = ""
 		if(tempF[i] > maxTemp){
 			labelPoint = "Too hot!";
@@ -236,13 +239,13 @@ function getData(){
 
 </body>
 
-<minLabel>
-Mimimum temperature (in F): <input type="text" id="minTemp" value="90">
-</minLabel>
-
 <maxLabel>
-Maximum temperature (in F):  <input type="text" id="maxTemp" value="50">
+Maximum temperature (in F):  <input type="text" id="maxTemp" value="90">
 </maxLabel>
+
+<minLabel>
+Mimimum temperature (in F): <input type="text" id="minTemp" value="50">
+</minLabel>
 
 </html>
 
