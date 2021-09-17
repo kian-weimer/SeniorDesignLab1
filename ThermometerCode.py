@@ -1,5 +1,7 @@
 import time
 from w1thermsensor import W1ThermSensor
+from w1thermsensor.errors import SensorNotReadyError, NoSensorFoundError
+
 import pandas as pd
 from pandas.errors import EmptyDataError
 
@@ -33,9 +35,12 @@ def archive_temp(temp):
 
 
 def get_temp():
-    sensor = W1ThermSensor()
-    temperature = sensor.get_temperature()
-    archive_temp(temperature)
+    try:
+        sensor = W1ThermSensor()
+        temperature = sensor.get_temperature()
+        archive_temp(temperature)
+    except (SensorNotReadyError, NoSensorFoundError):
+        return False
     return temperature
     
 
