@@ -3,13 +3,19 @@
 <head>
 <script>
 var showingF = true;
-var minTemp = document.getElementById("minTemp").value;
-var maxTemp = document.getElementById("maxTemp").value;
+var minTemp
+var maxTemp
 window.onload = buildGraph;
 
 function buildGraph(){
 	
 var recievedData = JSON.parse(getData());		//get data from our server
+
+if(recievedData.message == "Internal Server Error"){
+	var textToDisplay = "<h2>Internal Server Error. No data to show.</h2>";
+	document.getElementById("errors").innerHTML = textToDisplay;
+	return
+}
 
 var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
@@ -22,7 +28,11 @@ var data = [];								//var to hold the temp information
 var dataSeries = { type: "line" };			//type of graph
 var dataPoints = [];						//adds the current data point to the data var for graphing
 
+minTemp = document.getElementById("minTemp").value;
+maxTemp = document.getElementById("maxTemp").value;
+
 for(var i = 0; i < limit; i++){						//this is where we will load our data
+	var outOfLimit = false;
 	if(i > 0 && times[i] - times[i-1] > 1){
 		var textToDisplay = "<h2>The sensor has been disconnected!!!</h2>";
 		document.getElementById("warnings").innerHTML = textToDisplay;
@@ -36,10 +46,28 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		y = tempC[i];
 		document.getElementById("warnings").innerHTML = "";
 	}
-	dataPoints.push({
-		x: i,
-		y: y
-	});
+	if(tempF[i] > maxTemp || tempF[i] < minTemp){
+		var labelPoint = ""
+		if(tempF[i] > maxTemp){
+			labelPoint = "Too hot!";
+		}
+		else{
+			labelPoint = "Too cold!";
+		}
+		dataPoints.push({
+			x: i,
+			y: y,
+			lineColor:"red",
+			indexLabel: labelPoint,
+			markerColor: "red", markerType: "cross"
+		});
+	}
+	else{
+		dataPoints.push({
+			x: i,
+			y: y
+		});
+	}
 }
 dataSeries.dataPoints = dataPoints;
 data.push(dataSeries);
@@ -193,6 +221,8 @@ function getData(){
 	<!-- used to get temp data-->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
+<div id="errors"></div>
+
 <div id="chartContainer" style="height: 300px; width: 100%;"></div>
 <span id="timeToRender"></span>
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
@@ -207,11 +237,11 @@ function getData(){
 </body>
 
 <minLabel>
-Mimimum temperature (in F): <input type="text" id="minTemp" value="">
+Mimimum temperature (in F): <input type="text" id="minTemp" value="90">
 </minLabel>
 
 <maxLabel>
-Maximum temperature (in F):  <input type="text" id="maxTemp" value="">
+Maximum temperature (in F):  <input type="text" id="maxTemp" value="50">
 </maxLabel>
 
 </html>
