@@ -3,14 +3,18 @@
 <head>
 <script>
 var showingF = true;
+var minTemp = document.getElementById("minTemp").value;
+var maxTemp = document.getElementById("maxTemp").value;
 window.onload = buildGraph;
 
 function buildGraph(){
 	
 var recievedData = JSON.parse(getData());		//get data from our server
+
 var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
+
 
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
@@ -111,6 +115,20 @@ function getData(){
 		padding: 1em;
 	 }
 
+	 minLabel {
+	  /* Style the body */
+		position:absolute; 
+		top: 400px;
+		left: 202px;
+	 }
+
+	 maxLabel {
+	  /* Style the body */
+		position:absolute; 
+		top: 425px;
+		left: 202px;
+	 }
+
 	/* Time to Render styling */
 	#timeToRender {
 		position:absolute; 
@@ -168,7 +186,7 @@ function getData(){
 	  background-color: #555555;
 	  color: white;
 	}
-
+	
 </style>
 </head>
 <body>
@@ -187,6 +205,15 @@ function getData(){
 <span id="whiteCover"></span>
 
 </body>
+
+<minLabel>
+Mimimum temperature (in F): <input type="text" id="minTemp" value="">
+</minLabel>
+
+<maxLabel>
+Maximum temperature (in F):  <input type="text" id="maxTemp" value="">
+</maxLabel>
+
 </html>
 
 
