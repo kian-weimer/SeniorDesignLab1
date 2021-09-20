@@ -7,6 +7,8 @@ var minTemp
 var maxTemp
 window.onload = buildGraph;
 
+var update = setInterval(buildGraph, 1000);
+
 function buildGraph(){
 	
 var recievedData = JSON.parse(getData());		//get data from our server
@@ -48,20 +50,10 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 	}
 
 	if(tempF[i] > maxTemp || tempF[i] < minTemp){
-		console.log(maxTemp);
-	console.log(tempF[i]);
-		var labelPoint = ""
-		if(tempF[i] > maxTemp){
-			labelPoint = "Too hot!";
-		}
-		else{
-			labelPoint = "Too cold!";
-		}
 		dataPoints.push({
 			x: i,
 			y: y,
 			lineColor:"red",
-			indexLabel: labelPoint,
 			markerColor: "red", markerType: "cross"
 		});
 	}
@@ -91,9 +83,10 @@ var options = {
 		text: title
 	},
 	axisY: {
-		lineThickness: 1
+		lineThickness: 1 ,
+		includeZero: true
 	},
-	data: data  // random data
+	data: data  // temp data
 };
 
 var chart = new CanvasJS.Chart("chartContainer", options);
@@ -158,6 +151,12 @@ function getData(){
 		position:absolute; 
 		top: 425px;
 		left: 202px;
+	 }
+
+	 phoneLabel {
+	 	position:absolute; 
+		top: 400px;
+		left: 650px;
 	 }
 
 	/* Time to Render styling */
@@ -246,6 +245,10 @@ Maximum temperature (in F):  <input type="text" id="maxTemp" value="90">
 <minLabel>
 Mimimum temperature (in F): <input type="text" id="minTemp" value="50">
 </minLabel>
+
+<phoneLabel>
+Phone number: <input type="text" id="phoneNum" value="">
+</phoneLabel>
 
 </html>
 
