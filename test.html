@@ -18,7 +18,8 @@
 	    var xmlHttp = new XMLHttpRequest();
         var params = "LCDStatus=ON";
 
-    	xmlHttp.open( "POST", "http://192.168.0.119:5010/users?LCDStatus=\"ON\"", false ); // false for synchronous request
+    	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"ON\"", false ); // false for synchronous request
+
         xmlHttp.send( null );
 
         div.innerHTML +=  xmlHttp.responseText;
