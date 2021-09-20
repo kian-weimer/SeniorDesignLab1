@@ -7,10 +7,19 @@ var minTemp
 var maxTemp
 window.onload = buildGraph;
 
+/*
+TO ADD:
+
+if the third box switch is off, a message “no data available” should appear
+instead of the real-time temperature. 
+
+
+
+*/
 var update = setInterval(buildGraph, 1000);
 
 function buildGraph(){
-	
+
 var recievedData = JSON.parse(getData());		//get data from our server
 
 if(recievedData.message == "Internal Server Error"){
@@ -27,8 +36,10 @@ var tempC = recievedData.data["Temp(C)"];
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
 var data = [];								//var to hold the temp information
-var dataSeries = { type: "line" };			//type of graph
+var dataSeries = { type: "line"};			//type of graph
+//coulld move y-axis to other side with: axisYType: "secondary"
 var dataPoints = [];						//adds the current data point to the data var for graphing
+var newestTemp;
 
 minTemp = document.getElementById("minTemp").value;
 maxTemp = document.getElementById("maxTemp").value;
@@ -63,19 +74,28 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 			y: y
 		});
 	}
+	if(i == 299){
+		newestTemp = y;
+	}
 }
 dataSeries.dataPoints = dataPoints;
 data.push(dataSeries);
 
 var title;
+var min;
+var max;
 if(showingF){
 	title = "Temperature in F";
+	min = 50;
+	max = 122;
 }
 else{
 	title = "Temperature in C";
+	min = 10;
+	max = 50;
 }
 
-//Better to construct options first and then pass it as a parameter
+var xLabel = "seconds ago from the current time";
 var options = {
 	zoomEnabled: true,
 	animationEnabled: false,		//adds the special effect on startup/refresh
@@ -83,8 +103,13 @@ var options = {
 		text: title
 	},
 	axisY: {
-		lineThickness: 1 ,
-		includeZero: true
+		lineThickness: 1,
+		includeZero: true,
+		minimum: min,
+		maximum: max
+	},
+	axisX: {
+		text: xLabel
 	},
 	data: data  // temp data
 };
@@ -96,7 +121,13 @@ chart.render();					//adds the data to the chart
 var endTime = new Date();		//end render timer
 document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
 document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
+var unit = "F";
+if(!showingF){
+	unit = "C";
 }
+document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
+}
+
 
 function changeButton(){
 	if(showingF){
@@ -110,9 +141,18 @@ function changeButton(){
 		document.getElementById("tempButton").innerHTML = "Click to show Celsius";
 	}
 	showingF = !showingF;
-	console.log("button pressed");
 	getData();
 	buildGraph();
+}
+
+//STILL NEED TO SEND WHETHER ON OR OFF!!!
+function changeDisplay(){
+	if(document.getElementById("displayButton").innerHTML == "Click to turn on display"){
+		document.getElementById("displayButton").innerHTML = "Click to turn off display";
+	}
+	else{
+		document.getElementById("displayButton").innerHTML = "Click to turn on display";
+	}
 }
 
 function getData(){
@@ -143,20 +183,31 @@ function getData(){
 	  /* Style the body */
 		position:absolute; 
 		top: 400px;
-		left: 202px;
+		left: 205px;
 	 }
 
 	 maxLabel {
 	  /* Style the body */
 		position:absolute; 
 		top: 425px;
-		left: 202px;
+		left: 205px;
 	 }
 
 	 phoneLabel {
 	 	position:absolute; 
 		top: 400px;
 		left: 650px;
+	 }
+
+	 #tempDisplay {
+	 	position:absolute; 
+		top: 80px;
+	  	right: 275px;
+		font-size: 24px; 
+		font-weight: bold; 
+		background-color: white;
+		padding: 0px 4px;
+		color: red;
 	 }
 
 	/* Time to Render styling */
@@ -181,6 +232,17 @@ function getData(){
 		background-color: white;
 		padding: 0px 4px;
 		color: white;
+	}
+
+	.Dbutton {
+	  position: absolute;
+	  top: 465px;
+	  right: 210px;
+	  padding: 10px 24px;
+	  font-size: 16px;
+	  margin: 4px 2px;
+	  transition-duration: 0.4s;
+	  cursor: pointer;
 	}
 
 	/* Style the button */
@@ -234,7 +296,11 @@ function getData(){
 <!-- Add the button ... will start by showing Fahrenheit temps-->
 <button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
 
+<button class="Dbutton"id="displayButton"type="button"onclick=changeDisplay()>Click to turn on display</button>
+
 <span id="whiteCover"></span>
+
+<span id="tempDisplay"></span>
 
 </body>
 
