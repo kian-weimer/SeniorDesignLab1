@@ -14,15 +14,12 @@ from Server import main
 
 def button_activated(channel):
     if GPIO.input(16):
-        GPIO.output(13, 1)
+        GPIO.output(13, 0)
+        GPIO.output(6, 1)
     else:
-        GPIO.output(13,0)
-        
-def switch_activated(channel):
-    if GPIO.input(16):
         GPIO.output(13, 1)
-    else:
-        GPIO.output(13,0)
+        GPIO.output(6, 0)
+
 
 if __name__ == '__main__':
     
@@ -38,8 +35,8 @@ if __name__ == '__main__':
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(13, GPIO.OUT) #for turning on and off the LCD
     GPIO.output(13, 0)
-    GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP)#input from switch
-    GPIO.add_event_detect(6, GPIO.BOTH, callback=switch_activated, bouncetime=50)
+    GPIO.setup(6, GPIO.OUT) #for turning on and off the LCD
+    GPIO.output(6, 1)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
     lcd = LCD()
     
