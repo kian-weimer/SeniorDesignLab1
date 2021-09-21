@@ -3,8 +3,9 @@
 <head>
 <script>
 var showingF = true;
-var minTemp
-var maxTemp
+var showingEdit = true;
+var minTemp;
+var maxTemp;
 window.onload = buildGraph;
 
 /*
@@ -26,6 +27,10 @@ if(recievedData.message == "Internal Server Error"){
 	var textToDisplay = "<h2>Internal Server Error. No data to show.</h2>";
 	document.getElementById("errors").innerHTML = textToDisplay;
 	return
+}
+else{
+	var textToDisplay = "";
+	document.getElementById("errors").innerHTML = textToDisplay;
 }
 
 var times = recievedData.data["Time(s)"];
@@ -133,12 +138,12 @@ function changeButton(){
 	if(showingF){
 		document.getElementById("tempButton").classList.add("tempFButton");
 		document.getElementById("tempButton").classList.remove("tempCButton");
-		document.getElementById("tempButton").innerHTML = "Click to show Fahrenheit";
+		document.getElementById("tempButton").innerHTML = "Show Fahrenheit";
 	}
 	else{
 		document.getElementById("tempButton").classList.add("tempCButton");
 		document.getElementById("tempButton").classList.remove("tempFButton");
-		document.getElementById("tempButton").innerHTML = "Click to show Celsius";
+		document.getElementById("tempButton").innerHTML = "Show Celsius";
 	}
 	showingF = !showingF;
 	getData();
@@ -147,12 +152,31 @@ function changeButton(){
 
 //STILL NEED TO SEND WHETHER ON OR OFF!!!
 function changeDisplay(){
-	if(document.getElementById("displayButton").innerHTML == "Click to turn on display"){
-		document.getElementById("displayButton").innerHTML = "Click to turn off display";
+	var on = true;
+	if(document.getElementById("displayButton").innerHTML == "Turn on display"){
+		document.getElementById("displayButton").innerHTML = "Turn off display";
+		on = true;
 	}
 	else{
-		document.getElementById("displayButton").innerHTML = "Click to turn on display";
+		document.getElementById("displayButton").innerHTML = "Turn on display";
+		on = false;
 	}
+	postData(on);
+	console.log(postData(on));
+}
+
+function postData(on){
+	var xmlHttp = new XMLHttpRequest();
+	if(on){
+		xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"ON\"", false );
+		console.log("turning on");
+	}
+	else{
+		xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"OFF\"", false );
+		console.log("turning off");
+	}
+	xmlHttp.send( null );
+    return xmlHttp.response;
 }
 
 function getData(){
@@ -160,6 +184,33 @@ function getData(){
 	xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
     xmlHttp.send( null );
     return xmlHttp.response;
+}
+
+function editMaxMin(){
+
+	if(showingEdit){
+		document.getElementById("maxTemp").readOnly = false;
+		document.getElementById("minTemp").readOnly = false;
+		document.getElementById("editButton").innerHTML = "Submit";
+		
+	}
+	else{
+		var x = document.getElementById("minTemp").value;
+
+		if (isNaN(x)){
+			alert("Must input numbers");
+			document.getElementById("maxTemp").readOnly = true;
+			document.getElementById("minTemp").readOnly = true;
+			document.getElementById("minTemp").innerHTML = minTemp;
+			document.getElementById("editButton").innerHTML = "Edit";
+		}
+
+		document.getElementById("maxTemp").readOnly = true;
+		document.getElementById("minTemp").readOnly = true;
+		document.getElementById("editButton").innerHTML = "Edit";
+		//Call POST to send new ranges
+	}
+	showingEdit = !showingEdit;
 }
 
 </script>
@@ -234,10 +285,21 @@ function getData(){
 		color: white;
 	}
 
-	.Dbutton {
+	.displayButton {
 	  position: absolute;
-	  top: 465px;
+	  top: 460px;
 	  right: 210px;
+	  padding: 10px 24px;
+	  font-size: 16px;
+	  margin: 4px 2px;
+	  transition-duration: 0.4s;
+	  cursor: pointer;
+	}
+
+	.editButton {
+	  position: absolute;
+	  top: 450px;
+	  left: 420px;
 	  padding: 10px 24px;
 	  font-size: 16px;
 	  margin: 4px 2px;
@@ -294,9 +356,11 @@ function getData(){
 <div id="warnings"></div>
 
 <!-- Add the button ... will start by showing Fahrenheit temps-->
-<button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Click to show Celsius</button>
+<button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Show Celsius</button>
 
-<button class="Dbutton"id="displayButton"type="button"onclick=changeDisplay()>Click to turn on display</button>
+<button class="displayButton"id="displayButton"type="button"onclick=changeDisplay()>Turn on display</button>
+
+<button class="editButton"id="editButton"type="button"onclick=editMaxMin()>Edit</button>
 
 <span id="whiteCover"></span>
 
@@ -305,11 +369,11 @@ function getData(){
 </body>
 
 <maxLabel>
-Maximum temperature (in F):  <input type="text" id="maxTemp" value="90">
+Maximum temperature (in F):  <input type="text" id="maxTemp" value="90" readonly>
 </maxLabel>
 
 <minLabel>
-Mimimum temperature (in F): <input type="text" id="minTemp" value="50">
+Mimimum temperature (in F): <input type="text" id="minTemp" value="50" readonly>
 </minLabel>
 
 <phoneLabel>
