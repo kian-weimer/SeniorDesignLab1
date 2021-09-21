@@ -6,8 +6,11 @@ import ast
 from flask_cors import CORS
 import os
 import time
+from LCD import LCD
+#from mainController import lcd_on
 
 from multiprocessing import Value
+
 
 TEMP_FILE = '/home/pi/SeniorDesignLab1/temps.csv'
 
@@ -43,9 +46,13 @@ class Server(Resource):
         if input == "\"ON\"":
             Server.LCD_on.value = True
             print("Turn LCD ON here")
+            LCD.on(True)
+            LCD.website_on = True
         elif input == "\"OFF\"":
             Server.LCD_on.value = False
             print("Turn LCD OFF here")
+            LCD.on(False)
+            LCD.website_on = False
         else:
             return {'data': {'msg': "Error 400: LCDStatus " + input + " invalid. Enter \"ON\" or \"OFF\"."}}, 400
         return {'data': {'msg': 'Success'}}, 200  # return data with 200 OK

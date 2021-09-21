@@ -2,9 +2,19 @@ import adafruit_character_lcd.character_lcd as characterlcd
 import board
 import digitalio
 import ThermometerCode
+import RPi.GPIO as GPIO
 
 class LCD:
+    
+    website_on = False
+    
     def __init__(self):
+        
+        GPIO.setup(13, GPIO.OUT) #for turning on and off the LCD
+        GPIO.output(13, 0)
+        GPIO.setup(6, GPIO.OUT) #for turning on and off the LCD
+        GPIO.output(6, 1)
+        
         lcd_columns = 16
         lcd_rows = 2
         lcd_rs = digitalio.DigitalInOut(board.D26)
@@ -26,5 +36,13 @@ class LCD:
             self.lcd.clear()
             self.lcd.message = "{:10.2f}".format(temp)
             return temp
-            
     
+    @staticmethod
+    def on(on):
+        if(on):
+            GPIO.output(13, 0)
+            GPIO.output(6, 1)
+        else:
+            GPIO.output(13, 1)
+            GPIO.output(6, 0)
+               

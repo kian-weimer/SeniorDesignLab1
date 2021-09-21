@@ -11,15 +11,15 @@ from ctypes import c_bool
 from threading import Thread
 
 from Server import main
+lcd = LCD()
+
 
 def button_activated(channel):
     if GPIO.input(16):
-        GPIO.output(13, 0)
-        GPIO.output(6, 1)
-    else:
-        GPIO.output(13, 1)
-        GPIO.output(6, 0)
-
+        lcd.on(True)
+    elif(not LCD.website_on):
+        lcd.on(False)
+        
 
 if __name__ == '__main__':
     
@@ -33,12 +33,7 @@ if __name__ == '__main__':
     #sets up pin 16 as an input for an interupt
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(13, GPIO.OUT) #for turning on and off the LCD
-    GPIO.output(13, 0)
-    GPIO.setup(6, GPIO.OUT) #for turning on and off the LCD
-    GPIO.output(6, 1)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
-    lcd = LCD()
     
     #GPIO.setup(13,GPIO.OUT, pull_up_down=GPIO.PUD_UP)
 
@@ -61,6 +56,7 @@ if __name__ == '__main__':
                 thermometer_plugged_in.value = True
             
             if(temp > max_temp and alert_sent == False):
+                print("in temp if")
                 alert_sent = True
                 message_service.send_text_message("too hot", phone_number)
             elif(temp < max_temp):
