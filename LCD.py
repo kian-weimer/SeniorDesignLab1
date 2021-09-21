@@ -4,7 +4,6 @@ import digitalio
 import ThermometerCode
 
 class LCD:
-
     def __init__(self):
         lcd_columns = 16
         lcd_rows = 2
@@ -19,9 +18,13 @@ class LCD:
         self.lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
 
     def get_and_print_temp_on(self):
-        temp = ThermometerCode.get_temp()        
-        self.lcd.clear()
-        self.lcd.message = "{:10.2f}".format(temp)
-        return temp
-        
+        temp = ThermometerCode.get_temp()
+        if type(temp) != int and not temp:
+            self.lcd.message = "Temp Sensor Unplugged"
+            return False
+        else:
+            self.lcd.clear()
+            self.lcd.message = "{:10.2f}".format(temp)
+            return temp
+            
     
