@@ -26,6 +26,7 @@ def switch_activated(channel):
 
 if __name__ == '__main__':
     
+    #should be adjustable on the website
     min_temp = 0
     max_temp = 31
     phone_number = ''
@@ -53,6 +54,9 @@ if __name__ == '__main__':
     while True:
         start_time = time.time()
         temp = lcd.get_and_print_temp_on()
+        print("TEMP: ")
+        print(temp)
+
         if type(temp) != int and not temp:
             thermometer_plugged_in.value = False
         else:

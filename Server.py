@@ -71,6 +71,7 @@ def main(thermometer_plugged_in, LCD_on):
         timeout = timeout + 1
 
     time.sleep(2)  # there is a small delay after servers are pingable before we can create a server
+
     print("Starting server...")
     
     app.run('0.0.0.0', 5010)  # run our Flask app
