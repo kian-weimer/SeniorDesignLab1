@@ -40,9 +40,9 @@ class LCD:
     @staticmethod
     def on(on):
         if(on):
-            GPIO.output(13, 0)
-            GPIO.output(6, 1)
-        else:
             GPIO.output(13, 1)
             GPIO.output(6, 0)
+        else:
+            GPIO.output(13, 0)
+            GPIO.output(6, 1)
                

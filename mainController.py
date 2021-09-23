@@ -16,15 +16,14 @@ lcd = LCD()
 
 
 def button_activated(channel):
-    print("on or off: ", LCD.website_on)
-    if GPIO.input(16):
+    print("on or off: ", LCD.website_on.value)
+    if not GPIO.input(16):
         lcd.on(True)
-    elif(not LCD.website_on):
+    elif(not LCD.website_on.value):
         lcd.on(False)
         
 
 if __name__ == '__main__':
-    print("hello")
     #should be adjustable on the website
     alert_sent = False
     switch_status = False
@@ -38,7 +37,8 @@ if __name__ == '__main__':
 
     # Server communication\
     thermometer_plugged_in = Value(c_bool, False)
-    LCD_on = Value(c_bool, True)
+    LCD_on = Value(c_bool, False)
+    LCD.website_on = LCD_on
     max_temp = Value('i', True)
     min_temp = Value('i', True)
     max_temp.value = 31
@@ -63,13 +63,13 @@ if __name__ == '__main__':
             if(temp > max_temp.value and alert_sent == "good"):
                 alert_sent = "hot"
                 message_service.send_text_message("too hot", str(phone_number.value), str(area_code.value))
-            elif(temp < max_temp.value and alert_sent = "hot"):
+            elif(temp < max_temp.value and alert_sent == "hot"):
                 alert_sent = "good"
                 
             if(temp < min_temp.value and alert_sent == "good"):
                 alert_sent = "cold"
                 message_service.send_text_message("cold brr", str(phone_number.value), str(area_code.value))
-            elif(temp > min_temp.value and alert_sent = "cold"):
+            elif(temp > min_temp.value and alert_sent == "cold"):
                 alert_sent = "good"
             
         delay = time.time() - start_time

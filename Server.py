@@ -56,14 +56,12 @@ class Server(Resource):
                 Server.LCD_on.value = True
                 print("Turn LCD ON here")
                 LCD.on(True)
-                LCD.website_on = True
                 print("website: ", LCD.website_on)
                 return {'data': {'msg': 'Success, LCD turned ON'}}, 200  # return data with 200 OK
             elif input == "\"OFF\"":
                 Server.LCD_on.value = False
                 print("Turn LCD OFF here")
                 LCD.on(False)
-                LCD.website_on = False#should be false
                 print("website: ", LCD.website_on)
                 return {'data': {'msg': 'Success, LCD turned OFF'}}, 200  # return data with 200 OK
             else:
