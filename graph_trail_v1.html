@@ -3,13 +3,19 @@
 <head>
 <script>
 var showingF = true;
-var showingEdit = true;
-var minTemp;
-var maxTemp;
+var tempEdit = true;
+var phoneEdit = true;
+var minTemp; // = getMinTemp();
+var maxTemp; // = getMaxTemp();
+var phoneNum; // = getPhoneNum();
 window.onload = buildGraph;
 
 /*
 TO ADD:
+
+initial GET requests to get vals for min, max, and phone number
+
+POST reuqests to send new min, max, and phone number
 
 if the third box switch is off, a message “no data available” should appear
 instead of the real-time temperature. 
@@ -17,6 +23,8 @@ instead of the real-time temperature.
 
 
 */
+
+
 var update = setInterval(buildGraph, 1000);
 
 function buildGraph(){
@@ -169,55 +177,85 @@ function postData(on){
 	var xmlHttp = new XMLHttpRequest();
 	if(on){
 		xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"ON\"", false );
-		console.log("turning on");
 	}
 	else{
 		xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"OFF\"", false );
-		console.log("turning off");
 	}
-	xmlHttp.send( null );
+	xmlHttp.send(null);
     return xmlHttp.response;
 }
 
 function getData(){
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
-    xmlHttp.send( null );
+    xmlHttp.send(null);
     return xmlHttp.response;
 }
 
 function editMaxMin(){
 
-	if(showingEdit){
+	if(tempEdit){
 		document.getElementById("maxTemp").readOnly = false;
 		document.getElementById("minTemp").readOnly = false;
-		document.getElementById("editButton").innerHTML = "Submit";
-		
+		document.getElementById("editTempsButton").innerHTML = "Submit";
 	}
 	else{
-		var x = document.getElementById("minTemp").value;
-
-		if (isNaN(x)){
-			alert("Must input numbers");
-			document.getElementById("maxTemp").readOnly = true;
-			document.getElementById("minTemp").readOnly = true;
-			document.getElementById("minTemp").innerHTML = minTemp;
-			document.getElementById("editButton").innerHTML = "Edit";
+		var min = document.getElementById("minTemp").value;
+		var max = document.getElementById("maxTemp").value;
+		if (isNaN(min) && isNaN(max)){
+			alert("The inputs for the minimum and maximum temperatures must be numbers!");
+			document.getElementById("minTemp").value = "50";	//default to 50
+			document.getElementById("maxTemp").value = "90";	//default to 90
 		}
-
+		else if (isNaN(min)){
+			alert("The input for the minimum temperature must be a number!");
+			document.getElementById("minTemp").value = "50";	//default to 50
+		}
+		else if (isNaN(max)){
+			alert("The input for the maximum temperature must be a number!");
+			document.getElementById("maxTemp").value = "90";	//default to 90
+		}
+		else if (parseInt(min) >= parseInt(max)){
+			alert("The minimum temperature must be greater than the maximum temperature!");
+			document.getElementById("minTemp").value = "50";	//default to 50
+			document.getElementById("maxTemp").value = "90";	//default to 90
+		}
 		document.getElementById("maxTemp").readOnly = true;
 		document.getElementById("minTemp").readOnly = true;
-		document.getElementById("editButton").innerHTML = "Edit";
+		document.getElementById("editTempsButton").innerHTML = "Edit";
 		//Call POST to send new ranges
 	}
-	showingEdit = !showingEdit;
+	tempEdit = !tempEdit;
+}
+
+function editPhone(){
+
+	if(phoneEdit){
+		document.getElementById("phoneNum").readOnly = false;
+		document.getElementById("editPhoneButton").innerHTML = "Submit";
+	}
+	else{
+		var phone = document.getElementById("phoneNum").value;
+		if (isNaN(phone)){
+			alert("The input for a phone number must be all number!");
+			document.getElementById("phoneNum").value = "";
+		}
+		else if(phone.length != 10){
+			alert("The input for a phone number must be 10 digits long!");
+			document.getElementById("phoneNum").value = "";
+		}
+
+		document.getElementById("phoneNum").readOnly = true;
+		document.getElementById("editPhoneButton").innerHTML = "Edit";
+		//Call POST to send new phone number
+	}
+	phoneEdit = !phoneEdit;
 }
 
 </script>
 <style>
 
 	body {
-	  /* Style the body */
 		text-align: center;
 		margin-top: 50px;
 		background-color: skyblue;
@@ -231,14 +269,12 @@ function editMaxMin(){
 	 }
 
 	 minLabel {
-	  /* Style the body */
 		position:absolute; 
 		top: 400px;
 		left: 205px;
 	 }
 
 	 maxLabel {
-	  /* Style the body */
 		position:absolute; 
 		top: 425px;
 		left: 205px;
@@ -261,7 +297,6 @@ function editMaxMin(){
 		color: red;
 	 }
 
-	/* Time to Render styling */
 	#timeToRender {
 		position:absolute; 
 		top: 71px;
@@ -273,7 +308,6 @@ function editMaxMin(){
 		color: #ffffff;
 	}
 
-	/* Cover for the API site link */
 	#whiteCover {
 		position:absolute; 
 		top: 352px;
@@ -287,7 +321,7 @@ function editMaxMin(){
 
 	.displayButton {
 	  position: absolute;
-	  top: 460px;
+	  top: 450px;
 	  right: 210px;
 	  padding: 10px 24px;
 	  font-size: 16px;
@@ -296,10 +330,10 @@ function editMaxMin(){
 	  cursor: pointer;
 	}
 
-	.editButton {
+	.editTempsButton {
 	  position: absolute;
-	  top: 450px;
-	  left: 420px;
+	  top: 448px;
+	  left: 425px;
 	  padding: 10px 24px;
 	  font-size: 16px;
 	  margin: 4px 2px;
@@ -307,7 +341,17 @@ function editMaxMin(){
 	  cursor: pointer;
 	}
 
-	/* Style the button */
+	.editPhoneButton {
+	  position: absolute;
+	  top: 422px;
+	  left: 780px;
+	  padding: 10px 24px;
+	  font-size: 16px;
+	  margin: 4px 2px;
+	  transition-duration: 0.4s;
+	  cursor: pointer;
+	}
+
 	.button {
 	  position: absolute;
 	  top: 400px;
@@ -360,7 +404,10 @@ function editMaxMin(){
 
 <button class="displayButton"id="displayButton"type="button"onclick=changeDisplay()>Turn on display</button>
 
-<button class="editButton"id="editButton"type="button"onclick=editMaxMin()>Edit</button>
+<button class="editTempsButton"id="editTempsButton"type="button"onclick=editMaxMin()>Edit</button>
+
+<button class="editPhoneButton"id="editPhoneButton"type="button"onclick=editPhone()>Edit</button>
+
 
 <span id="whiteCover"></span>
 
@@ -377,7 +424,7 @@ Mimimum temperature (in F): <input type="text" id="minTemp" value="50" readonly>
 </minLabel>
 
 <phoneLabel>
-Phone number: <input type="text" id="phoneNum" value="">
+Phone number: <input type="text" id="phoneNum" value="" readonly>
 </phoneLabel>
 
 </html>

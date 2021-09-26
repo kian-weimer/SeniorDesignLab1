@@ -95,8 +95,6 @@ class Server(Resource):
             return {'data': {'msg': "Error 400: No valid input parameters were passed. No action taken."}}, 400
 
 
-
-
 def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_code):
     app = Flask(__name__)
     CORS(app)
@@ -107,7 +105,6 @@ def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_
     Server.min_temp = min_temp
     Server.phone_number = phone_number
     Server.area_code = area_code
-
 
     api.add_resource(Server, '/users')  # add endpoints
 
