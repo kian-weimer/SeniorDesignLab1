@@ -30,7 +30,7 @@ class LCD:
     def get_and_print_temp_on(self):
         temp = ThermometerCode.get_temp()
         if type(temp) != int and not temp:
-            self.lcd.message = "Temp Sensor Unplugged"
+            self.lcd.message = "The Temp Sensor" + "is Unplugged"
             return False
         else:
             self.lcd.clear()
@@ -45,4 +45,3 @@ class LCD:
         else:
             GPIO.output(13, 0)
             GPIO.output(6, 1)
-               

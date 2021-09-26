@@ -39,12 +39,10 @@ if __name__ == '__main__':
     thermometer_plugged_in = Value(c_bool, False)
     LCD_on = Value(c_bool, False)
     LCD.website_on = LCD_on
-    max_temp = Value('i', True)
-    min_temp = Value('i', True)
-    max_temp.value = 31
-    min_temp.value = 0
-    phone_number = Value('i', True)
-    area_code = Value('i', True)
+    max_temp = Value('i', 31)
+    min_temp = Value('i', 0)
+    phone_number = Value('i', 0)
+    area_code = Value('i', 0)
     server = Process(target=main, args=(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_code))
     server.start()
         
@@ -59,18 +57,19 @@ if __name__ == '__main__':
         else:
             if not thermometer_plugged_in.value:
                 thermometer_plugged_in.value = True
-            
-            if(temp > max_temp.value and alert_sent == "good"):
-                alert_sent = "hot"
-                message_service.send_text_message("too hot", str(phone_number.value), str(area_code.value))
-            elif(temp < max_temp.value and alert_sent == "hot"):
-                alert_sent = "good"
-                
-            if(temp < min_temp.value and alert_sent == "good"):
-                alert_sent = "cold"
-                message_service.send_text_message("cold brr", str(phone_number.value), str(area_code.value))
-            elif(temp > min_temp.value and alert_sent == "cold"):
-                alert_sent = "good"
+
+            if phone_number.value != 0:
+                if(temp > max_temp.value and alert_sent == "good"):
+                    alert_sent = "hot"
+                    message_service.send_text_message("too hot", str(phone_number.value), str(area_code.value))
+                elif(temp < max_temp.value and alert_sent == "hot"):
+                    alert_sent = "good"
+
+                if(temp < min_temp.value and alert_sent == "good"):
+                    alert_sent = "cold"
+                    message_service.send_text_message("cold brr", str(phone_number.value), str(area_code.value))
+                elif(temp > min_temp.value and alert_sent == "cold"):
+                    alert_sent = "good"
             
         delay = time.time() - start_time
         if delay < 1:
