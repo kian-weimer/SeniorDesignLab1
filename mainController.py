@@ -7,7 +7,8 @@ import time
 from LCD import LCD
 
 from multiprocessing import Process, Queue, Value, Manager
-from ctypes import c_bool
+from ctypes import c_bool, c_char_p
+
 from threading import Thread
 
 from Server import main
@@ -15,18 +16,15 @@ lcd = LCD()
 
 
 def button_activated(channel):
-    if GPIO.input(16):
+    print("on or off: ", LCD.website_on.value)
+    if not GPIO.input(16):
         lcd.on(True)
-    elif(not LCD.website_on):
+    elif(not LCD.website_on.value):
         lcd.on(False)
         
 
 if __name__ == '__main__':
-    
     #should be adjustable on the website
-    min_temp = 0
-    max_temp = 31
-    phone_number = ''
     alert_sent = False
     switch_status = False
     
@@ -39,10 +37,15 @@ if __name__ == '__main__':
 
     # Server communication\
     thermometer_plugged_in = Value(c_bool, False)
-    LCD_on = Value(c_bool, True)
-    server = Process(target=main, args=(thermometer_plugged_in, LCD_on))
+    LCD_on = Value(c_bool, False)
+    LCD.website_on = LCD_on
+    max_temp = Value('i', 31)
+    min_temp = Value('i', 0)
+    phone_number = Value('i', 0)
+    area_code = Value('i', 0)
+    server = Process(target=main, args=(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_code))
     server.start()
-    
+        
     while True:
         start_time = time.time()
         temp = lcd.get_and_print_temp_on()
@@ -54,13 +57,19 @@ if __name__ == '__main__':
         else:
             if not thermometer_plugged_in.value:
                 thermometer_plugged_in.value = True
-            
-            if(temp > max_temp and alert_sent == False):
-                print("in temp if")
-                alert_sent = True
-                message_service.send_text_message("too hot", phone_number)
-            elif(temp < max_temp):
-                alert_sent = False
+
+            if phone_number.value != 0:
+                if(temp > max_temp.value and alert_sent == "good"):
+                    alert_sent = "hot"
+                    message_service.send_text_message("too hot", str(phone_number.value), str(area_code.value))
+                elif(temp < max_temp.value and alert_sent == "hot"):
+                    alert_sent = "good"
+
+                if(temp < min_temp.value and alert_sent == "good"):
+                    alert_sent = "cold"
+                    message_service.send_text_message("cold brr", str(phone_number.value), str(area_code.value))
+                elif(temp > min_temp.value and alert_sent == "cold"):
+                    alert_sent = "good"
             
         delay = time.time() - start_time
         if delay < 1:
