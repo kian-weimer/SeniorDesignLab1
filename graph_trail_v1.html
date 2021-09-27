@@ -5,15 +5,22 @@
 var showingF = true;
 var tempEdit = true;
 var phoneEdit = true;
-var minTemp; // = getMinTemp();
-var maxTemp; // = getMaxTemp();
-var phoneNum; // = getPhoneNum();
+
+var phoneNumber;
+var minTemp;
+var maxTemp;
+
+var init = true;
 window.onload = buildGraph;
+
+//NEW VARS TO PREVENT ZOOM ISSUE
+var axisXMax = 0, axisXMin = 0;
+var axisX = {};
+var updateRange = 0;
+var resetFlag = false;
 
 /*
 TO ADD:
-
-initial GET requests to get vals for min, max, and phone number
 
 POST reuqests to send new min, max, and phone number
 
@@ -25,43 +32,47 @@ instead of the real-time temperature.
 */
 
 
-var update = setInterval(buildGraph, 1000);
+var update = setInterval(buildGraph, 3000);
 
 function buildGraph(){
 
 var recievedData = JSON.parse(getData());		//get data from our server
+console.log(recievedData);
 
 if(recievedData.message == "Internal Server Error"){
-	var textToDisplay = "<h2>Internal Server Error. No data to show.</h2>";
-	document.getElementById("errors").innerHTML = textToDisplay;
+	document.getElementById("errors").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
 	return
 }
 else{
-	var textToDisplay = "";
-	document.getElementById("errors").innerHTML = textToDisplay;
+	document.getElementById("errors").innerHTML = "";
 }
 
 var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
 
+minTemp = recievedData.data["min_temp"];
+maxTemp = recievedData.data["max_temp"];
+phoneNumber = "" + recievedData.data["area_code"] + recievedData.data["phone_number"];
+
+if(init){
+	document.getElementById("minTemp").value = minTemp;
+	document.getElementById("maxTemp").value = maxTemp;
+	document.getElementById("phoneNum").value = phoneNumber;
+	init = false;
+}
 
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
 var data = [];								//var to hold the temp information
 var dataSeries = { type: "line"};			//type of graph
-//coulld move y-axis to other side with: axisYType: "secondary"
 var dataPoints = [];						//adds the current data point to the data var for graphing
 var newestTemp;
-
-minTemp = document.getElementById("minTemp").value;
-maxTemp = document.getElementById("maxTemp").value;
 
 
 for(var i = 0; i < limit; i++){						//this is where we will load our data
 	if(i > 0 && times[i] - times[i-1] > 1){
-		var textToDisplay = "<h2>The sensor has been disconnected!!!</h2>";
-		document.getElementById("warnings").innerHTML = textToDisplay;
+		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
 		y = null;
 	}
 	else if(showingF){
@@ -111,6 +122,20 @@ else{
 var xLabel = "seconds ago from the current time";
 var options = {
 	zoomEnabled: true,
+	rangeChanged: function(e) {
+		if(e.trigger === "zoom") {
+			axisXMax = e.axisX[0].viewportMaximum + 1;
+      		axisXMin = e.axisX[0].viewportMinimum + 1;
+      		resetFlag = false;
+      		if( updateRange > 0 ) 
+      			clearInterval(updateRange);
+      		updateRange = setInterval(updateAxisRange(), 1000); 
+      	} 
+      	else if(e.trigger == "reset") {
+      		resetFlag = true;
+      		clearInterval(updateRange);
+      	}
+    },
 	animationEnabled: false,		//adds the special effect on startup/refresh
 	title: {
 		text: title
@@ -139,6 +164,14 @@ if(!showingF){
 	unit = "C";
 }
 document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
+}
+
+function updateAxisRange(){    	   	
+  axisXMax += 1;
+  axisXMin += 1;
+  chart.options.axisX.viewportMaximum = axisXMax;
+  chart.options.axisX.viewportMinimum = axisXMin;
+  chart.render();		
 }
 
 
@@ -204,21 +237,21 @@ function editMaxMin(){
 		var max = document.getElementById("maxTemp").value;
 		if (isNaN(min) && isNaN(max)){
 			alert("The inputs for the minimum and maximum temperatures must be numbers!");
-			document.getElementById("minTemp").value = "50";	//default to 50
-			document.getElementById("maxTemp").value = "90";	//default to 90
+			document.getElementById("minTemp").value = minTemp;
+			document.getElementById("maxTemp").value = maxTemp;
 		}
 		else if (isNaN(min)){
 			alert("The input for the minimum temperature must be a number!");
-			document.getElementById("minTemp").value = "50";	//default to 50
+			document.getElementById("minTemp").value = minTemp;
 		}
 		else if (isNaN(max)){
 			alert("The input for the maximum temperature must be a number!");
-			document.getElementById("maxTemp").value = "90";	//default to 90
+			document.getElementById("maxTemp").value = maxTemp;
 		}
 		else if (parseInt(min) >= parseInt(max)){
 			alert("The minimum temperature must be greater than the maximum temperature!");
-			document.getElementById("minTemp").value = "50";	//default to 50
-			document.getElementById("maxTemp").value = "90";	//default to 90
+			document.getElementById("minTemp").value = minTemp;
+			document.getElementById("maxTemp").value = maxTemp;
 		}
 		document.getElementById("maxTemp").readOnly = true;
 		document.getElementById("minTemp").readOnly = true;
@@ -238,11 +271,11 @@ function editPhone(){
 		var phone = document.getElementById("phoneNum").value;
 		if (isNaN(phone)){
 			alert("The input for a phone number must be all number!");
-			document.getElementById("phoneNum").value = "";
+			document.getElementById("phoneNum").value = phoneNumber;
 		}
 		else if(phone.length != 10){
 			alert("The input for a phone number must be 10 digits long!");
-			document.getElementById("phoneNum").value = "";
+			document.getElementById("phoneNum").value = phoneNumber;
 		}
 
 		document.getElementById("phoneNum").readOnly = true;
@@ -289,7 +322,7 @@ function editPhone(){
 	 #tempDisplay {
 	 	position:absolute; 
 		top: 80px;
-	  	right: 275px;
+	  	right: 335px;
 		font-size: 24px; 
 		font-weight: bold; 
 		background-color: white;
