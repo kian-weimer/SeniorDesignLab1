@@ -14,13 +14,15 @@ from multiprocessing import Value
 
 
 TEMP_FILE = '/home/pi/SeniorDesignLab1/temps.csv'
+SERVER_FILE = '/home/pi/SeniorDesignLab1/data.db'
+
 
 def init_database():
     ### THIS SHOULD ONLY BE RAN ONCE
     ### Run this function once to init the database
     ### Reruns will result in lost data
 
-    data = sl.connect('data.db')
+    data = sl.connect(SERVER_FILE)
 
     vars = {}
     vars["max_temp"] = 0
@@ -44,8 +46,8 @@ class Server(Resource):
         data = pd.read_csv(TEMP_FILE)  # read local CSV
         data = data.to_dict()  # convert dataframe to dict
 
-        with sl.connect('data.db') as sq_data:
-            data = con.execute("SELECT * FROM VARS").fetchone()
+        with sl.connect(SERVER_FILE) as sq_data:
+            sq_data = sq_data.execute("SELECT * FROM VARS").fetchone()
             data["max_temp"] = sq_data[1]
             data["min_temp"] = sq_data[2]
             data["area_code"] = sq_data[3]
@@ -84,11 +86,24 @@ class Server(Resource):
         elif args['max_temp'] and args['min_temp']:
             Server.max_temp.value = int(args['max_temp'])
             Server.min_temp.value = int(args['max_temp'])
+            with sl.connect(SERVER_FILE) as sq_data:
+                sql = '''UPDATE VARS SET max_temp = ''' + str(Server.max_temp.value) + ''';'''
+                sq_data.execute(sql)
+                sql = '''UPDATE VARS SET min_temp = ''' + str(Server.min_temp.value) + ''';'''
+                sq_data.execute(sql)
+
             return {'data': {'msg': 'Success, Max temp: ' + str(Server.max_temp.value) + " Min temp: " + str(Server.min_temp.value)}}, 200  # return data with 200 OK
 
         elif args['phone_number'] and args['area_code']:
             Server.phone_number.value = int(args['phone_number'])
             Server.area_code.value = int(args['area_code'])
+            with sl.connect(SERVER_FILE) as sq_data:
+                sql = '''UPDATE VARS SET phone_number = ''' + str(Server.phone_number.value) + ''';'''
+                print(sql)
+                sq_data.execute(sql)
+                sql = '''UPDATE VARS SET area_code = ''' + str(Server.area_code.value) + ''';'''
+                sq_data.execute(sql)
+            
             return {'data': {'msg': 'Success, New phone number: ' + str(Server.area_code.value) + str(Server.phone_number.value) + " = " + args['area_code'] + args['phone_number']}}, 200  # return data with 200 OK
 
         else:
@@ -105,6 +120,13 @@ def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_
     Server.min_temp = min_temp
     Server.phone_number = phone_number
     Server.area_code = area_code
+
+    with sl.connect(SERVER_FILE) as sq_data:
+        sq_data = sq_data.execute("SELECT * FROM VARS").fetchone()
+        Server.max_temp.value = sq_data[1]
+        Server.min_temp.value = sq_data[2]
+        Server.phone_number.value = sq_data[3]
+        Server.area_code.value = sq_data[4]
 
     api.add_resource(Server, '/users')  # add endpoints
 
@@ -125,5 +147,12 @@ def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_
     app.run('0.0.0.0', 5010)  # run our Flask app
 
 if __name__ == '__main__':
+    # Calling this file directly will only create the database.
+    # To run the server the main() method should be called by another program.
     # main(False, False)
-    init_database()
+    i = input("Are you sure that you want to generate a new database?\n"
+              "\t(This will overwrite the existing database (if it exists).\n"
+              "\tEnter 'Y' to confirm... ")
+    
+    if i == 'Y' or i == 'y':
+        init_database()

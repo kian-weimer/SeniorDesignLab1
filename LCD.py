@@ -26,14 +26,20 @@ class LCD:
         lcd_columns = 16
         lcd_rows = 2
         self.lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
+        self.unplugged = False
 
     def get_and_print_temp_on(self):
         temp = ThermometerCode.get_temp()
+        print(temp)
         if type(temp) != int and not temp:
             self.lcd.message = "The Temp Sensor\nis Unplugged"
-
+            self.unplugged = True
             return False
         else:
+            if(self.unplugged):
+                self.lcd.clear()
+                self.lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
+                self.unplugged = False
             self.lcd.clear()
             self.lcd.message = "{:10.2f}".format(temp)
             return temp

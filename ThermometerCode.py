@@ -39,7 +39,8 @@ def get_temp():
         sensor = W1ThermSensor()
         temperature = sensor.get_temperature()
         archive_temp(temperature)
-    except (SensorNotReadyError, NoSensorFoundError):
+    except (SensorNotReadyError, NoSensorFoundError) as e:
+        print(e)
         return False
     return temperature
     
