@@ -2,6 +2,8 @@
 <html>
 <head>
 <script>
+var chart;
+
 var showingF = true;
 var tempEdit = true;
 var phoneEdit = true;
@@ -11,13 +13,14 @@ var minTemp;
 var maxTemp;
 
 var init = true;
-window.onload = buildGraph;
 
-//NEW VARS TO PREVENT ZOOM ISSUE
-var axisXMax = 0, axisXMin = 0;
+var axisXMax = 0;
+var axisXMin = 0;
 var axisX = {};
 var updateRange = 0;
 var resetFlag = false;
+
+window.onload = buildGraph;
 
 /*
 TO ADD:
@@ -27,17 +30,13 @@ POST reuqests to send new min, max, and phone number
 if the third box switch is off, a message “no data available” should appear
 instead of the real-time temperature. 
 
-
-
 */
 
-
-var update = setInterval(buildGraph, 3000);
+var update = setInterval(buildGraph, 1000);
 
 function buildGraph(){
 
 var recievedData = JSON.parse(getData());		//get data from our server
-console.log(recievedData);
 
 if(recievedData.message == "Internal Server Error"){
 	document.getElementById("errors").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
@@ -122,20 +121,24 @@ else{
 var xLabel = "seconds ago from the current time";
 var options = {
 	zoomEnabled: true,
-	rangeChanged: function(e) {
-		if(e.trigger === "zoom") {
-			axisXMax = e.axisX[0].viewportMaximum + 1;
-      		axisXMin = e.axisX[0].viewportMinimum + 1;
-      		resetFlag = false;
-      		if( updateRange > 0 ) 
-      			clearInterval(updateRange);
-      		updateRange = setInterval(updateAxisRange(), 1000); 
-      	} 
-      	else if(e.trigger == "reset") {
-      		resetFlag = true;
-      		clearInterval(updateRange);
-      	}
-    },
+	rangeChanged: function(e) {   
+    if(e.trigger === "zoom") {
+      axisXMax = e.axisX[0].viewportMaximum + 1;
+      axisXMin = e.axisX[0].viewportMinimum + 1;
+      resetFlag = false;
+      if(updateRange > 0){
+      	clearInterval(updateRange);
+      }
+      updateRange = setInterval(updateAxisRange(), 1000); 
+    }
+    else if(e.trigger == "reset") {
+      resetFlag = true;
+      axisXMax = 299;
+      axisXMin = 0;
+      updateAxisRange();
+      clearInterval(updateRange);
+    }
+  },
 	animationEnabled: false,		//adds the special effect on startup/refresh
 	title: {
 		text: title
@@ -147,12 +150,14 @@ var options = {
 		maximum: max
 	},
 	axisX: {
-		text: xLabel
+		text: xLabel,
+		viewportMinimum: axisXMin,
+		viewportMaximum: axisXMax
 	},
 	data: data  // temp data
 };
 
-var chart = new CanvasJS.Chart("chartContainer", options);
+chart = new CanvasJS.Chart("chartContainer", options);
 
 var startTime = new Date();		//start render timer
 chart.render();					//adds the data to the chart
@@ -203,7 +208,6 @@ function changeDisplay(){
 		on = false;
 	}
 	postData(on);
-	console.log(postData(on));
 }
 
 function postData(on){
@@ -226,7 +230,6 @@ function getData(){
 }
 
 function editMaxMin(){
-
 	if(tempEdit){
 		document.getElementById("maxTemp").readOnly = false;
 		document.getElementById("minTemp").readOnly = false;
@@ -262,7 +265,6 @@ function editMaxMin(){
 }
 
 function editPhone(){
-
 	if(phoneEdit){
 		document.getElementById("phoneNum").readOnly = false;
 		document.getElementById("editPhoneButton").innerHTML = "Submit";
