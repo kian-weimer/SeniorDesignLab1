@@ -8,6 +8,7 @@ import os
 import time
 from LCD import LCD
 import sqlite3 as sl
+import argparse
 #from mainController import lcd_on
 
 from multiprocessing import Value
@@ -17,7 +18,7 @@ TEMP_FILE = '/home/pi/SeniorDesignLab1/temps.csv'
 SERVER_FILE = '/home/pi/SeniorDesignLab1/data.db'
 
 
-def init_database():
+def init_database(account_sid, auth_token):
     ### THIS SHOULD ONLY BE RAN ONCE
     ### Run this function once to init the database
     ### Reruns will result in lost data
@@ -25,10 +26,12 @@ def init_database():
     data = sl.connect(SERVER_FILE)
 
     vars = {}
-    vars["max_temp"] = 0
-    vars["min_temp"] = 31
+    vars["max_temp"] = 31
+    vars["min_temp"] = 0
     vars["area_code"] = 112
     vars["phone_number"] = 3456789
+    vars["account_sid"] = account_sid
+    vars["auth_token"] = auth_token
     vars_df = pd.DataFrame(vars, index=[0])
     vars_df.to_sql('VARS', data)
 
@@ -85,7 +88,7 @@ class Server(Resource):
 
         elif args['max_temp'] and args['min_temp']:
             Server.max_temp.value = int(args['max_temp'])
-            Server.min_temp.value = int(args['max_temp'])
+            Server.min_temp.value = int(args['min_temp'])
             with sl.connect(SERVER_FILE) as sq_data:
                 sql = '''UPDATE VARS SET max_temp = ''' + str(Server.max_temp.value) + ''';'''
                 sq_data.execute(sql)
@@ -93,7 +96,7 @@ class Server(Resource):
                 sq_data.execute(sql)
 
             return {'data': {'msg': 'Success, Max temp: ' + str(Server.max_temp.value) + " Min temp: " + str(Server.min_temp.value)}}, 200  # return data with 200 OK
-
+            
         elif args['phone_number'] and args['area_code']:
             Server.phone_number.value = int(args['phone_number'])
             Server.area_code.value = int(args['area_code'])
@@ -149,10 +152,27 @@ def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_
 if __name__ == '__main__':
     # Calling this file directly will only create the database.
     # To run the server the main() method should be called by another program.
-    # main(False, False)
+    argParser = argparse.ArgumentParser(description='Configure server database.')
+    argParser.add_argument(
+        "-sid",
+        "--account_sid",
+        action="store",
+        dest="account_sid",
+        required=True
+    )
+    argParser.add_argument(
+        "-auth",
+        "--auth_token",
+        action="store",
+        dest="auth_token",
+        required=True
+    )
+
+    args = argParser.parse_args()
+    
     i = input("Are you sure that you want to generate a new database?\n"
               "\t(This will overwrite the existing database (if it exists).\n"
               "\tEnter 'Y' to confirm... ")
     
     if i == 'Y' or i == 'y':
-        init_database()
+        init_database(args.account_sid, args.auth_token)

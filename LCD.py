@@ -15,17 +15,15 @@ class LCD:
         GPIO.setup(6, GPIO.OUT) #for turning on and off the LCD
         GPIO.output(6, 1)
         
-        lcd_columns = 16
-        lcd_rows = 2
-        lcd_rs = digitalio.DigitalInOut(board.D26)
-        lcd_en = digitalio.DigitalInOut(board.D19)
-        lcd_d7 = digitalio.DigitalInOut(board.D27)
-        lcd_d6 = digitalio.DigitalInOut(board.D22)
-        lcd_d5 = digitalio.DigitalInOut(board.D24)
-        lcd_d4 = digitalio.DigitalInOut(board.D25)
-        lcd_columns = 16
-        lcd_rows = 2
-        self.lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
+        self.lcd_columns = 16
+        self.lcd_rows = 2
+        self.lcd_rs = digitalio.DigitalInOut(board.D26)
+        self.lcd_en = digitalio.DigitalInOut(board.D19)
+        self.lcd_d7 = digitalio.DigitalInOut(board.D27)
+        self.lcd_d6 = digitalio.DigitalInOut(board.D22)
+        self.lcd_d5 = digitalio.DigitalInOut(board.D24)
+        self.lcd_d4 = digitalio.DigitalInOut(board.D25)
+        self.lcd = characterlcd.Character_LCD_Mono(self.lcd_rs, self.lcd_en, self.lcd_d4, self.lcd_d5, self.lcd_d6, self.lcd_d7, self.lcd_columns, self.lcd_rows)
         self.unplugged = False
 
     def get_and_print_temp_on(self):
@@ -38,7 +36,7 @@ class LCD:
         else:
             if(self.unplugged):
                 self.lcd.clear()
-                self.lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
+                self.lcd = characterlcd.Character_LCD_Mono(self.lcd_rs, self.lcd_en, self.lcd_d4, self.lcd_d5, self.lcd_d6, self.lcd_d7, self.lcd_columns, self.lcd_rows)
                 self.unplugged = False
             self.lcd.clear()
             self.lcd.message = "{:10.2f}".format(temp)
