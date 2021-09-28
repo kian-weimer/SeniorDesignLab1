@@ -25,9 +25,9 @@ def button_activated(channel):
 
 if __name__ == '__main__':
     #should be adjustable on the website
-    alert_sent = False
+    alert_sent = 'good'
     switch_status = False
-    
+
     #sets up pin 16 as an input for an interupt
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         else:
             if not thermometer_plugged_in.value:
                 thermometer_plugged_in.value = True
-
+            print(phone_number.value)
             if phone_number.value != 0:
                 if(temp > max_temp.value and alert_sent == "good"):
                     alert_sent = "hot"
