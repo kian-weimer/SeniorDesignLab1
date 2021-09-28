@@ -1,20 +1,17 @@
 import os
 from twilio.rest import Client
-import sqlite3 as sl
-SERVER_FILE = '/home/pi/SeniorDesignLab1/data.db'
 import smtplib
 
-def send_text_message(message, number, area_code):
+def send_text_message(message, number, area_code, provider):
     username = "ryshueh@gmail.com"
     password = ""
 
-    vtext = '1' + area_code + number + "@email.uscc.net"
-    message = "woo"
+    vtext = '1' + area_code + number + "@" + provider
+
     subject = ""
     msg = ""
 
     header = 'To:' + number + '\n' + 'From:  ' + username + '\n' + 'Subject: 3rd box message \n'
-    print(header)
     mesg = "\n".join([header, message])
 
     server = smtplib.SMTP('smtp.gmail.com',587)

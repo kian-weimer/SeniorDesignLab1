@@ -8,7 +8,6 @@ import os
 import time
 from LCD import LCD
 import sqlite3 as sl
-import argparse
 #from mainController import lcd_on
 
 from multiprocessing import Value
@@ -18,7 +17,7 @@ TEMP_FILE = '/home/pi/SeniorDesignLab1/temps.csv'
 SERVER_FILE = '/home/pi/SeniorDesignLab1/data.db'
 
 
-def init_database(account_sid, auth_token):
+def init_database():
     ### THIS SHOULD ONLY BE RAN ONCE
     ### Run this function once to init the database
     ### Reruns will result in lost data
@@ -30,8 +29,9 @@ def init_database(account_sid, auth_token):
     vars["min_temp"] = 0
     vars["area_code"] = 112
     vars["phone_number"] = 3456789
-    vars["account_sid"] = account_sid
-    vars["auth_token"] = auth_token
+    vars["hot_message"] = "The temperature is too hot!"
+    vars["cold_message"] = "The temperature is too cold!"
+    vars["provider"] = "email.uscc.net"
     vars_df = pd.DataFrame(vars, index=[0])
     vars_df.to_sql('VARS', data)
 
@@ -48,6 +48,7 @@ class Server(Resource):
     def get(self):
         data = pd.read_csv(TEMP_FILE)  # read local CSV
         data = data.to_dict()  # convert dataframe to dict
+        data["current_time"] = round(time.time())
 
         with sl.connect(SERVER_FILE) as sq_data:
             sq_data = sq_data.execute("SELECT * FROM VARS").fetchone()
@@ -55,6 +56,9 @@ class Server(Resource):
             data["min_temp"] = sq_data[2]
             data["area_code"] = sq_data[3]
             data["phone_number"] = sq_data[4]
+            data["hot_message"] = sq_data[5]
+            data["cold_message"] = sq_data[6]
+            data["provider"] = sq_data[7]
 
         if Server.thermometer_plugged_in.value:
             data["thermometer_plugged_in"] = "True"
@@ -70,6 +74,9 @@ class Server(Resource):
         parser.add_argument('min_temp', required=False)
         parser.add_argument('area_code', required=False)
         parser.add_argument('phone_number', required=False)
+        parser.add_argument('hot_message', required=False)
+        parser.add_argument('cold_message', required=False)
+        parser.add_argument('provider', required=False)
         args = parser.parse_args()  # parse arguments to dictionary
 
         # call the LCD toggle function here
@@ -97,7 +104,7 @@ class Server(Resource):
 
             return {'data': {'msg': 'Success, Max temp: ' + str(Server.max_temp.value) + " Min temp: " + str(Server.min_temp.value)}}, 200  # return data with 200 OK
             
-        elif args['phone_number'] and args['area_code']:
+        elif args['phone_number'] and args['area_code'] and args['provider']:
             Server.phone_number.value = int(args['phone_number'])
             Server.area_code.value = int(args['area_code'])
             with sl.connect(SERVER_FILE) as sq_data:
@@ -106,9 +113,19 @@ class Server(Resource):
                 sq_data.execute(sql)
                 sql = '''UPDATE VARS SET area_code = ''' + str(Server.area_code.value) + ''';'''
                 sq_data.execute(sql)
+                sql = '''UPDATE VARS SET provider = \"''' + args['provider'] + '''\";'''
+                print(sql)
+                sq_data.execute(sql)
             
             return {'data': {'msg': 'Success, New phone number: ' + str(Server.area_code.value) + str(Server.phone_number.value) + " = " + args['area_code'] + args['phone_number']}}, 200  # return data with 200 OK
-
+        elif args['hot_message']:
+            with sl.connect(SERVER_FILE) as sq_data:
+                sql = '''UPDATE VARS SET hot_message = \"''' + args['hot_message'] + '''\";'''
+                sq_data.execute(sql)
+        elif args['cold_message']:
+            with sl.connect(SERVER_FILE) as sq_data:
+                sql = '''UPDATE VARS SET cold_message = \"''' + args['cold_message'] + '''\";'''
+                sq_data.execute(sql)
         else:
             return {'data': {'msg': "Error 400: No valid input parameters were passed. No action taken."}}, 400
 
@@ -128,8 +145,8 @@ def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_
         sq_data = sq_data.execute("SELECT * FROM VARS").fetchone()
         Server.max_temp.value = sq_data[1]
         Server.min_temp.value = sq_data[2]
-        Server.phone_number.value = sq_data[3]
-        Server.area_code.value = sq_data[4]
+        Server.area_code.value = sq_data[3]
+        Server.phone_number.value = sq_data[4]
 
     api.add_resource(Server, '/users')  # add endpoints
 
@@ -152,27 +169,9 @@ def main(thermometer_plugged_in, LCD_on, max_temp, min_temp, phone_number, area_
 if __name__ == '__main__':
     # Calling this file directly will only create the database.
     # To run the server the main() method should be called by another program.
-    argParser = argparse.ArgumentParser(description='Configure server database.')
-    argParser.add_argument(
-        "-sid",
-        "--account_sid",
-        action="store",
-        dest="account_sid",
-        required=True
-    )
-    argParser.add_argument(
-        "-auth",
-        "--auth_token",
-        action="store",
-        dest="auth_token",
-        required=True
-    )
-
-    args = argParser.parse_args()
-    
     i = input("Are you sure that you want to generate a new database?\n"
-              "\t(This will overwrite the existing database (if it exists).\n"
+              "\tThis may overwrite the existing database (if it exists).\n"
               "\tEnter 'Y' to confirm... ")
     
     if i == 'Y' or i == 'y':
-        init_database(args.account_sid, args.auth_token)
+        init_database()
