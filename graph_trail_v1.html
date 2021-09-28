@@ -3,6 +3,7 @@
 <head>
 <script>
 var chart;
+var ip = "192.168.6.125";
 
 var showingF = true;
 var tempEdit = true;
@@ -46,7 +47,6 @@ if(recievedData.message == "Internal Server Error"){
 }
 else{
 	document.getElementById("warnings").innerHTML = "";
-	console.log("here");
 }
 
 var times = recievedData.data["Time(s)"];
@@ -80,8 +80,14 @@ var dataPoints = [];						//adds the current data point to the data var for grap
 var newestTemp;
 
 for(var i = 0; i < limit; i++){						//this is where we will load our data
-	if(!pluggedIn){
-		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
+	/*if(pluggedIn == "False"){
+		//document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";	//FIX THIS
+		y = null;
+		console.log("logging null");
+	}*/
+	if(i > 0 && times[i] - times[i-1] > 1){
+		var textToDisplay = "<h2>The sensor has been disconnected!!!</h2>";
+		document.getElementById("warnings").innerHTML = textToDisplay;
 		y = null;
 	}
 	else if(showingF){
@@ -93,6 +99,7 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		document.getElementById("warnings").innerHTML = "";
 	}
 	var point = 300 - i;
+	console.log("logging null at point " + point);
 	if(tempC[i] > maxTemp || tempC[i] < minTemp){
 		dataPoints.push({
 			x: point,
@@ -102,6 +109,7 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		});
 	}
 	else{
+		console.log("y = " + y);
 		dataPoints.push({
 			x: point,
 			y: y
@@ -224,35 +232,33 @@ function changeDisplay(){
 function postData(on){
 	var xmlHttp = new XMLHttpRequest();
 	if(on){
-		xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"ON\"", false );
+		xmlHttp.open( "POST", "http://" + ip + ":5010/users?LCDStatus=\"ON\"", false );
 	}
 	else{
-		xmlHttp.open( "POST", "http://192.168.0.146:5010/users?LCDStatus=\"OFF\"", false );
+		xmlHttp.open( "POST", "http://" + ip + ":5010/users?LCDStatus=\"OFF\"", false );
 	}
 	xmlHttp.send(null);
     return xmlHttp.response;
 }
 
-function postMinAndMax(){	//NOT WORKING
-	console.log("Here!!");
-	console.log(minTemp);
-	console.log(maxTemp);
+function postMinAndMax(){
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?min_temp=" + minTemp + "&max_temp=" + maxTemp, false );
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?min_temp=" + minTemp + "&max_temp=" + maxTemp, false );
 	xmlHttp.send(null);
   return xmlHttp.response;
 }
 
 function postPhoneNumber(){
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?area_code=" + areaCode + "&phone_number=" + number + "&provider=" + provider, false );
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?area_code=" + areaCode + "&phone_number=" + number + "&provider=" + provider, false );
 	xmlHttp.send(null);
   return xmlHttp.response;
 }
 
 function getData(){
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
+	//xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
+	xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
     xmlHttp.send(null);
     return xmlHttp.response;
 }
