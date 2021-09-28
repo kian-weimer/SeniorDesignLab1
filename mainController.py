@@ -12,6 +12,10 @@ from ctypes import c_bool, c_char_p
 from threading import Thread
 
 from Server import main
+import sqlite3 as sl
+
+SERVER_FILE = '/home/pi/SeniorDesignLab1/data.db'
+
 lcd = LCD()
 
 
@@ -61,13 +65,21 @@ if __name__ == '__main__':
             if phone_number.value != 0:
                 if(temp > max_temp.value and alert_sent == "good"):
                     alert_sent = "hot"
-                    message_service.send_text_message("too hot", str(phone_number.value), str(area_code.value))
+                    with sl.connect(SERVER_FILE) as sq_data:
+                        sq_data = sq_data.execute("SELECT * FROM VARS").fetchone()
+                        hot_message = sq_data[5]
+                        provider = sq_data[7]
+                    message_service.send_text_message(hot_message, str(phone_number.value), str(area_code.value), provider)
                 elif(temp < max_temp.value and alert_sent == "hot"):
                     alert_sent = "good"
 
                 if(temp < min_temp.value and alert_sent == "good"):
                     alert_sent = "cold"
-                    message_service.send_text_message("cold brr", str(phone_number.value), str(area_code.value))
+                    with sl.connect(SERVER_FILE) as sq_data:
+                        sq_data = sq_data.execute("SELECT * FROM VARS").fetchone()
+                        cold_message = sq_data[6]
+                        provider = sq_data[7]
+                    message_service.send_text_message(cold_message, str(phone_number.value), str(area_code.value), provider)
                 elif(temp > min_temp.value and alert_sent == "cold"):
                     alert_sent = "good"
             
