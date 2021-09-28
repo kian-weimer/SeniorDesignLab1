@@ -51,8 +51,8 @@ var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
 
-minTemp = cToF(recievedData.data["min_temp"]);
-maxTemp = cToF(recievedData.data["max_temp"]);
+minTemp = recievedData.data["min_temp"];
+maxTemp = recievedData.data["max_temp"];
 
 areaCode = recievedData.data["area_code"];
 number = recievedData.data["phone_number"];
@@ -61,8 +61,8 @@ phoneNumber = "" + areaCode + number;
 var pluggedIn = recievedData.data["thermometer_plugged_in"];
 
 if(init){
-	document.getElementById("minTemp").value = Math.round(minTemp);
-	document.getElementById("maxTemp").value = Math.round(maxTemp);
+	document.getElementById("minTemp").value = minTemp;
+	document.getElementById("maxTemp").value = maxTemp;
 	document.getElementById("phoneNum").value = phoneNumber;
 	init = false;
 }
@@ -88,7 +88,7 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		document.getElementById("warnings").innerHTML = "";
 	}
 	var point = 300 - i;
-	if(tempF[i] > maxTemp || tempF[i] < minTemp){
+	if(tempC[i] > maxTemp || tempC[i] < minTemp){
 		dataPoints.push({
 			x: point,
 			y: y,
@@ -229,6 +229,9 @@ function postData(on){
 }
 
 function postMinAndMax(){	//NOT WORKING
+	console.log("Here!!");
+	console.log(minTemp);
+	console.log(maxTemp);
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?min_temp=" + minTemp + "&max_temp=" + maxTemp, false );
 	xmlHttp.send(null);
@@ -258,6 +261,7 @@ function editMaxMin(){
 	else{
 		var min = document.getElementById("minTemp").value;
 		var max = document.getElementById("maxTemp").value;
+		var inputError = true;
 		if (isNaN(min) && isNaN(max)){
 			alert("The inputs for the minimum and maximum temperatures must be numbers!");
 			document.getElementById("minTemp").value = minTemp;
@@ -276,14 +280,19 @@ function editMaxMin(){
 			document.getElementById("minTemp").value = minTemp;
 			document.getElementById("maxTemp").value = maxTemp;
 		}
+		else{
+			inputError = false;
+		}
 		document.getElementById("maxTemp").readOnly = true;
 		document.getElementById("minTemp").readOnly = true;
 		document.getElementById("editTempsButton").innerHTML = "Edit";
-		minTemp = fToC(min);
-		maxTemp = fToC(max);
+		minTemp = min;
+		maxTemp = max;
 
 		//Call POST to send new ranges
-		postMinAndMax();
+		if(!inputError){
+			postMinAndMax();
+		}
 	}
 	tempEdit = !tempEdit;
 }
@@ -294,6 +303,7 @@ function editPhone(){
 		document.getElementById("editPhoneButton").innerHTML = "Submit";
 	}
 	else{
+		var inputError = true;
 		var phone = document.getElementById("phoneNum").value;
 		if (isNaN(phone)){
 			alert("The input for a phone number must be all number!");
@@ -303,6 +313,9 @@ function editPhone(){
 			alert("The input for a phone number must be 10 digits long!");
 			document.getElementById("phoneNum").value = phoneNumber;
 		}
+		else{
+			inputError = false;
+		}
 
 		document.getElementById("phoneNum").readOnly = true;
 		document.getElementById("editPhoneButton").innerHTML = "Edit";
@@ -311,7 +324,9 @@ function editPhone(){
 		phoneNumber = phone;
 
 		//Call POST to send new phone number
-		postPhoneNumber();
+		if(!inputError){
+			postPhoneNumber();
+		}
 	}
 	phoneEdit = !phoneEdit;
 }
@@ -498,11 +513,11 @@ function fToC (number){
 </body>
 
 <maxLabel>
-Maximum temperature (in F):  <input type="text" id="maxTemp" value="90" readonly>
+Maximum temperature (in C):  <input type="text" id="maxTemp" value="90" readonly>
 </maxLabel>
 
 <minLabel>
-Mimimum temperature (in F): <input type="text" id="minTemp" value="50" readonly>
+Mimimum temperature (in C): <input type="text" id="minTemp" value="50" readonly>
 </minLabel>
 
 <phoneLabel>
