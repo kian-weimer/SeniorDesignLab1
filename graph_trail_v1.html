@@ -11,7 +11,7 @@ var phoneEdit = true;
 var areaCode;
 var number;
 var phoneNumber;
-var provider;				//need to get this initially
+var provider;
 
 var minTemp;
 var maxTemp;
@@ -35,8 +35,8 @@ if the third box switch is off, a message “no data available” should appear
 instead of the real-time temperature. 
 
 */
-//var update = setInterval(buildGraph, 1000);
-/*
+var update = setInterval(buildGraph, 1000);
+
 function buildGraph(){
 var recievedData = JSON.parse(getData());		//get data from our server
 
@@ -46,6 +46,7 @@ if(recievedData.message == "Internal Server Error"){
 }
 else{
 	document.getElementById("warnings").innerHTML = "";
+	console.log("here");
 }
 
 var times = recievedData.data["Time(s)"];
@@ -58,6 +59,8 @@ maxTemp = recievedData.data["max_temp"];
 areaCode = recievedData.data["area_code"];
 number = recievedData.data["phone_number"];
 phoneNumber = "" + areaCode + number;
+
+provider = recievedData.data["provider"];
 
 var pluggedIn = recievedData.data["thermometer_plugged_in"];
 
@@ -178,7 +181,7 @@ if(!showingF){
 }
 document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
 }
-*/
+
 function updateAxisRange(){    	   	
   axisXMax += 1;
   axisXMin += 1;
@@ -241,7 +244,7 @@ function postMinAndMax(){	//NOT WORKING
 
 function postPhoneNumber(){
 	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?area_code=" + areaCode + "&phone_number=" + number, false );
+	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?area_code=" + areaCode + "&phone_number=" + number + "&provider=" + provider, false );
 	xmlHttp.send(null);
   return xmlHttp.response;
 }
@@ -326,7 +329,7 @@ function editPhone(){
 
 		//Call POST to send new phone number
 		if(!inputError){
-			provider = document.getElementById("providers");
+			provider = document.getElementById("providers").value;
 			postPhoneNumber();
 		}
 	}
@@ -373,6 +376,18 @@ function editPhone(){
 		left: 650px;
 	 }
 
+	 maxTempSMSLabel {
+	 	position:absolute;
+		bottom: 80px;
+		left: 100px;
+	 }
+
+	 minTempSMSLabel {
+	 	position:absolute;
+		bottom: 80px;
+		right: 140px;
+	 }
+
 	 #tempDisplay {
 	 	position:absolute; 
 		top: 80px;
@@ -386,9 +401,9 @@ function editPhone(){
 
 	 #warnings {
 	 	position:absolute; 
-		bottom: 100px;
-	  right: 200px;
-		font-size: 24px; 
+		top: 150px;
+	  right: 210px;
+		font-size: 40px; 
 		font-weight: bold; 
 		background-color: white;
 		padding: 0px 4px;
@@ -526,7 +541,7 @@ Phone number: <input type="text" id="phoneNum" value="" readonly>
 
   <label for="providers">Choose a provider:</label>
   <select name="providers" id="providers">
-    <option value="vtext.com">Verison</option>
+    <option value="vtext.com">Verizon</option>
     <option value="email.uscc.net">US Cellular</option>
     <option value="txt.att.net">AT&T</option>
     <option value="tmomail.net">T-Mobile</option>
@@ -534,6 +549,22 @@ Phone number: <input type="text" id="phoneNum" value="" readonly>
   </select>
 
 </providerLabel>
+
+<maxTempSMSLabel>
+
+Text for too hot:
+<textarea id="maxText" name="maxText" rows="4" cols="50">
+</textarea>
+
+</maxTempSMSLabel>
+
+<minTempSMSLabel>
+
+Text for too cold:
+<textarea id="minText" name="minText" rows="4" cols="50">
+</textarea>
+
+</minTempSMSLabel>
 
 </html>
 
