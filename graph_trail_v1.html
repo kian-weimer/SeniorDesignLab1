@@ -8,7 +8,10 @@ var showingF = true;
 var tempEdit = true;
 var phoneEdit = true;
 
+var areaCode;
+var number;
 var phoneNumber;
+
 var minTemp;
 var maxTemp;
 
@@ -31,32 +34,35 @@ if the third box switch is off, a message “no data available” should appear
 instead of the real-time temperature. 
 
 */
-
 var update = setInterval(buildGraph, 1000);
 
 function buildGraph(){
-
 var recievedData = JSON.parse(getData());		//get data from our server
 
 if(recievedData.message == "Internal Server Error"){
-	document.getElementById("errors").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
+	document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
 	return
 }
 else{
-	document.getElementById("errors").innerHTML = "";
+	document.getElementById("warnings").innerHTML = "";
 }
 
 var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
 
-minTemp = recievedData.data["min_temp"];
-maxTemp = recievedData.data["max_temp"];
-phoneNumber = "" + recievedData.data["area_code"] + recievedData.data["phone_number"];
+minTemp = cToF(recievedData.data["min_temp"]);
+maxTemp = cToF(recievedData.data["max_temp"]);
+
+areaCode = recievedData.data["area_code"];
+number = recievedData.data["phone_number"];
+phoneNumber = "" + areaCode + number;
+
+var pluggedIn = recievedData.data["thermometer_plugged_in"];
 
 if(init){
-	document.getElementById("minTemp").value = minTemp;
-	document.getElementById("maxTemp").value = maxTemp;
+	document.getElementById("minTemp").value = Math.round(minTemp);
+	document.getElementById("maxTemp").value = Math.round(maxTemp);
 	document.getElementById("phoneNum").value = phoneNumber;
 	init = false;
 }
@@ -68,9 +74,8 @@ var dataSeries = { type: "line"};			//type of graph
 var dataPoints = [];						//adds the current data point to the data var for graphing
 var newestTemp;
 
-
 for(var i = 0; i < limit; i++){						//this is where we will load our data
-	if(i > 0 && times[i] - times[i-1] > 1){
+	if(!pluggedIn){
 		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
 		y = null;
 	}
@@ -196,7 +201,6 @@ function changeButton(){
 	buildGraph();
 }
 
-//STILL NEED TO SEND WHETHER ON OR OFF!!!
 function changeDisplay(){
 	var on = true;
 	if(document.getElementById("displayButton").innerHTML == "Turn on display"){
@@ -220,6 +224,20 @@ function postData(on){
 	}
 	xmlHttp.send(null);
     return xmlHttp.response;
+}
+
+function postMinAndMax(){	//NOT WORKING
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?min_temp=" + minTemp + "&max_temp=" + maxTemp, false );
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
+function postPhoneNumber(){
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open( "POST", "http://192.168.0.146:5010/users?area_code=" + areaCode + "&phone_number=" + number, false );
+	xmlHttp.send(null);
+  return xmlHttp.response;
 }
 
 function getData(){
@@ -259,7 +277,11 @@ function editMaxMin(){
 		document.getElementById("maxTemp").readOnly = true;
 		document.getElementById("minTemp").readOnly = true;
 		document.getElementById("editTempsButton").innerHTML = "Edit";
+		minTemp = fToC(min);
+		maxTemp = fToC(max);
+
 		//Call POST to send new ranges
+		postMinAndMax();
 	}
 	tempEdit = !tempEdit;
 }
@@ -282,9 +304,24 @@ function editPhone(){
 
 		document.getElementById("phoneNum").readOnly = true;
 		document.getElementById("editPhoneButton").innerHTML = "Edit";
+		areaCode = phone.substring(0,3);
+		number = phone.substring(3, 10);
+		phoneNumber = phone;
+
 		//Call POST to send new phone number
+		postPhoneNumber();
 	}
 	phoneEdit = !phoneEdit;
+}
+
+function cToF (number){
+	var inCelcius = number * (9/5) + 32;
+	return inCelcius;
+}
+
+function fToC (number){
+	var inF = (number - 32) * (5/9);
+	return inF;
 }
 
 </script>
@@ -306,13 +343,13 @@ function editPhone(){
 	 minLabel {
 		position:absolute; 
 		top: 400px;
-		left: 205px;
+		left: 210px;
 	 }
 
 	 maxLabel {
 		position:absolute; 
 		top: 425px;
-		left: 205px;
+		left: 210px;
 	 }
 
 	 phoneLabel {
@@ -324,7 +361,18 @@ function editPhone(){
 	 #tempDisplay {
 	 	position:absolute; 
 		top: 80px;
-	  	right: 335px;
+	  right: 335px;
+		font-size: 24px; 
+		font-weight: bold; 
+		background-color: white;
+		padding: 0px 4px;
+		color: red;
+	 }
+
+	 #warnings {
+	 	position:absolute; 
+		bottom: 100px;
+	  right: 200px;
 		font-size: 24px; 
 		font-weight: bold; 
 		background-color: white;
@@ -426,13 +474,9 @@ function editPhone(){
 	<!-- used to get temp data-->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
-<div id="errors"></div>
-
 <div id="chartContainer" style="height: 300px; width: 100%;"></div>
 <span id="timeToRender"></span>
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
-
-<div id="warnings"></div>
 
 <!-- Add the button ... will start by showing Fahrenheit temps-->
 <button class="button tempCButton"id="tempButton"type="button"onclick=changeButton()>Show Celsius</button>
@@ -443,6 +487,7 @@ function editPhone(){
 
 <button class="editPhoneButton"id="editPhoneButton"type="button"onclick=editPhone()>Edit</button>
 
+<span id="warnings"></span>
 
 <span id="whiteCover"></span>
 
@@ -463,8 +508,5 @@ Phone number: <input type="text" id="phoneNum" value="" readonly>
 </phoneLabel>
 
 </html>
-
-
-
 
 
