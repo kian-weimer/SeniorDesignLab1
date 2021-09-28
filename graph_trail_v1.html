@@ -70,7 +70,7 @@ if(init){
 var limit = 300;		//number y-axis data points
 var y = 50;    			//starting point of the data (only applicable for the example)
 var data = [];								//var to hold the temp information
-var dataSeries = { type: "line"};			//type of graph
+var dataSeries = { type: "line", axisYType: "secondary"};			//type of graph
 var dataPoints = [];						//adds the current data point to the data var for graphing
 var newestTemp;
 
@@ -87,10 +87,10 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		y = tempC[i];
 		document.getElementById("warnings").innerHTML = "";
 	}
-
+	var point = 300 - i;
 	if(tempF[i] > maxTemp || tempF[i] < minTemp){
 		dataPoints.push({
-			x: i,
+			x: point,
 			y: y,
 			lineColor:"red",
 			markerColor: "red", markerType: "cross"
@@ -98,7 +98,7 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 	}
 	else{
 		dataPoints.push({
-			x: i,
+			x: point,
 			y: y
 		});
 	}
@@ -148,7 +148,7 @@ var options = {
 	title: {
 		text: title
 	},
-	axisY: {
+	axisY2: {
 		lineThickness: 1,
 		includeZero: true,
 		minimum: min,
@@ -156,6 +156,8 @@ var options = {
 	},
 	axisX: {
 		text: xLabel,
+		reversed:  true,
+		title: "seconds ago from the current time",
 		viewportMinimum: axisXMin,
 		viewportMaximum: axisXMax
 	},
