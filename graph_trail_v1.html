@@ -11,6 +11,7 @@ var phoneEdit = true;
 var areaCode;
 var number;
 var phoneNumber;
+var provider;				//need to get this initially
 
 var minTemp;
 var maxTemp;
@@ -34,8 +35,8 @@ if the third box switch is off, a message “no data available” should appear
 instead of the real-time temperature. 
 
 */
-var update = setInterval(buildGraph, 1000);
-
+//var update = setInterval(buildGraph, 1000);
+/*
 function buildGraph(){
 var recievedData = JSON.parse(getData());		//get data from our server
 
@@ -177,7 +178,7 @@ if(!showingF){
 }
 document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
 }
-
+*/
 function updateAxisRange(){    	   	
   axisXMax += 1;
   axisXMin += 1;
@@ -325,20 +326,11 @@ function editPhone(){
 
 		//Call POST to send new phone number
 		if(!inputError){
+			provider = document.getElementById("providers");
 			postPhoneNumber();
 		}
 	}
 	phoneEdit = !phoneEdit;
-}
-
-function cToF (number){
-	var inCelcius = number * (9/5) + 32;
-	return inCelcius;
-}
-
-function fToC (number){
-	var inF = (number - 32) * (5/9);
-	return inF;
 }
 
 </script>
@@ -372,6 +364,12 @@ function fToC (number){
 	 phoneLabel {
 	 	position:absolute; 
 		top: 400px;
+		left: 650px;
+	 }
+
+	 providerLabel {
+	 	position:absolute;
+		top: 430px;
 		left: 650px;
 	 }
 
@@ -433,7 +431,7 @@ function fToC (number){
 	.editTempsButton {
 	  position: absolute;
 	  top: 448px;
-	  left: 425px;
+	  left: 428px;
 	  padding: 10px 24px;
 	  font-size: 16px;
 	  margin: 4px 2px;
@@ -443,7 +441,7 @@ function fToC (number){
 
 	.editPhoneButton {
 	  position: absolute;
-	  top: 422px;
+	  top: 452px;
 	  left: 780px;
 	  padding: 10px 24px;
 	  font-size: 16px;
@@ -523,6 +521,19 @@ Mimimum temperature (in C): <input type="text" id="minTemp" value="50" readonly>
 <phoneLabel>
 Phone number: <input type="text" id="phoneNum" value="" readonly>
 </phoneLabel>
+
+<providerLabel>
+
+  <label for="providers">Choose a provider:</label>
+  <select name="providers" id="providers">
+    <option value="vtext.com">Verison</option>
+    <option value="email.uscc.net">US Cellular</option>
+    <option value="txt.att.net">AT&T</option>
+    <option value="tmomail.net">T-Mobile</option>
+    <option value="messaging.sprintpcs.com">Sprint</option>
+  </select>
+
+</providerLabel>
 
 </html>
 
