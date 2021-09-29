@@ -40,6 +40,7 @@ var update = setInterval(buildGraph, 1000);
 
 function buildGraph(){
 var recievedData = JSON.parse(getData());		//get data from our server
+console.log(recievedData);
 
 if(recievedData.message == "Internal Server Error"){
 	document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
@@ -52,6 +53,7 @@ else{
 var times = recievedData.data["Time(s)"];
 var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
+var currentTime = recievedData.data["current_time"];
 
 minTemp = recievedData.data["min_temp"];
 maxTemp = recievedData.data["max_temp"];
@@ -79,15 +81,12 @@ var dataSeries = { type: "line", axisYType: "secondary"};			//type of graph
 var dataPoints = [];						//adds the current data point to the data var for graphing
 var newestTemp;
 
+var start = currentTime - times[299] - 1;	//seems to be -1 most of the time... sometimes it's 0...
+console.log(start);
+
 for(var i = 0; i < limit; i++){						//this is where we will load our data
-	/*if(pluggedIn == "False"){
-		//document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";	//FIX THIS
-		y = null;
-		console.log("logging null");
-	}*/
-	if(i > 0 && times[i] - times[i-1] > 1){
-		var textToDisplay = "<h2>The sensor has been disconnected!!!</h2>";
-		document.getElementById("warnings").innerHTML = textToDisplay;
+	if(i >= (limit - start)){
+		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
 		y = null;
 	}
 	else if(showingF){
@@ -99,7 +98,6 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		document.getElementById("warnings").innerHTML = "";
 	}
 	var point = 300 - i;
-	console.log("logging null at point " + point);
 	if(tempC[i] > maxTemp || tempC[i] < minTemp){
 		dataPoints.push({
 			x: point,
@@ -109,7 +107,6 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		});
 	}
 	else{
-		console.log("y = " + y);
 		dataPoints.push({
 			x: point,
 			y: y
@@ -119,6 +116,7 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		newestTemp = y;
 	}
 }
+
 dataSeries.dataPoints = dataPoints;
 data.push(dataSeries);
 
@@ -408,9 +406,9 @@ function editPhone(){
 
 	 #warnings {
 	 	position:absolute; 
-		top: 150px;
-	  right: 210px;
-		font-size: 40px; 
+		top: 0px;
+	  right: 520px;
+		font-size: 12px; 
 		font-weight: bold; 
 		background-color: white;
 		padding: 0px 4px;
