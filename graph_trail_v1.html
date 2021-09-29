@@ -52,6 +52,8 @@ var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
 var currentTime = recievedData.data["current_time"];
 
+console.log(recievedData);
+
 minTemp = recievedData.data["min_temp"];
 maxTemp = recievedData.data["max_temp"];
 
@@ -79,7 +81,7 @@ var dataPoints = [];						//adds the current data point to the data var for grap
 var newestTemp;
 
 var start = currentTime - times[299] - 1;	//seems to be -1 most of the time... sometimes it's 0...
-//console.log(start);
+console.log(start);
 
 for(var i = 0; i < limit; i++){						//this is where we will load our data
 	if(i >= (limit - start)){
@@ -287,7 +289,7 @@ function postMaxText(){
 	maxText = String(maxText).replace(/[&<>"'`=\/]/g, function (s) {
     return entityMap[s];
   });
-	
+
 	xmlHttp.open( "POST", "http://" + ip + ":5010/users?cold_message=" + maxText);
 	xmlHttp.send(null);
   return xmlHttp.response;
