@@ -30,17 +30,14 @@ window.onload = buildGraph;
 /*
 TO ADD:
 
-POST reuqests to send new min, max, and phone number
+POST reuqests to send min text and max text
 
-if the third box switch is off, a message “no data available” should appear
-instead of the real-time temperature. 
 
 */
 var update = setInterval(buildGraph, 1000);
 
 function buildGraph(){
 var recievedData = JSON.parse(getData());		//get data from our server
-console.log(recievedData);
 
 if(recievedData.message == "Internal Server Error"){
 	document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
@@ -82,11 +79,14 @@ var dataPoints = [];						//adds the current data point to the data var for grap
 var newestTemp;
 
 var start = currentTime - times[299] - 1;	//seems to be -1 most of the time... sometimes it's 0...
-console.log(start);
+//console.log(start);
 
 for(var i = 0; i < limit; i++){						//this is where we will load our data
 	if(i >= (limit - start)){
 		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
+		y = null;
+	}
+	else if(i > 0 && times[i] - times[i-1] > 1){
 		y = null;
 	}
 	else if(showingF){
@@ -253,9 +253,48 @@ function postPhoneNumber(){
   return xmlHttp.response;
 }
 
+var entityMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;'
+};
+
+function postMinText(){
+	var xmlHttp = new XMLHttpRequest();
+	var minText = document.getElementById("minText").value;
+
+	minText = minText.replace(/ /g, '%20');
+
+	minText = String(minText).replace(/[&<>"'`=\/]/g, function (s) {
+    return entityMap[s];
+  });
+
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?hot_message=" + minText);
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
+function postMaxText(){
+	var xmlHttp = new XMLHttpRequest();
+	var maxText = document.getElementById("maxTextButton").value;
+	maxText = maxText.replace(/ /g, '%20');
+
+	maxText = String(maxText).replace(/[&<>"'`=\/]/g, function (s) {
+    return entityMap[s];
+  });
+	
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?cold_message=" + maxText);
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
 function getData(){
 	var xmlHttp = new XMLHttpRequest();
-	//xmlHttp.open( "GET", "http://192.168.0.146:5010/users", false ); // false for synchronous request
 	xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
     xmlHttp.send(null);
     return xmlHttp.response;
@@ -470,6 +509,28 @@ function editPhone(){
 	  cursor: pointer;
 	}
 
+	.minTextButton {
+	  position: absolute;
+	  bottom: 25px;
+	  right: 220px;
+	  padding: 10px 24px;
+	  font-size: 16px;
+	  margin: 4px 2px;
+	  transition-duration: 0.4s;
+	  cursor: pointer;
+	}
+
+	.maxTextButton {
+	  position: absolute;
+	  bottom: 25px;
+	  left: 250px;
+	  padding: 10px 24px;
+	  font-size: 16px;
+	  margin: 4px 2px;
+	  transition-duration: 0.4s;
+	  cursor: pointer;
+	}
+
 	.button {
 	  position: absolute;
 	  top: 400px;
@@ -521,6 +582,10 @@ function editPhone(){
 <button class="editTempsButton"id="editTempsButton"type="button"onclick=editMaxMin()>Edit</button>
 
 <button class="editPhoneButton"id="editPhoneButton"type="button"onclick=editPhone()>Edit</button>
+
+<button class="minTextButton"id="minTextButton"type="button"onclick=postMinText()>Set as text</button>
+
+<button class="maxTextButton"id="maxTextButton"type="button"onclick=postMaxText()>Set as text</button>
 
 <span id="warnings"></span>
 
