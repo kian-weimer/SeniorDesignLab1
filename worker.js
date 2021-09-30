@@ -3,6 +3,7 @@ self.onmessage = function (event) {
   xmlHttp.open( "GET", "http://" + event.data + ":5010/users", false ); // false for synchronous request
   xmlHttp.timeout = 5000
   xmlHttp.ontimeout = function (e) {
+    self.postMessage("Null")
     return "Null"
   };
   try{
