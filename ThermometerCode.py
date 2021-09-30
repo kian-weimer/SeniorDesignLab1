@@ -1,17 +1,22 @@
 import time
 from w1thermsensor import W1ThermSensor
-from w1thermsensor.errors import SensorNotReadyError, NoSensorFoundError
+from w1thermsensor.errors import SensorNotReadyError, NoSensorFoundError, ResetValueError
 
 import pandas as pd
 from pandas.errors import EmptyDataError
 
 TEMP_FILE = '/home/pi/SeniorDesignLab1/temps.csv'
+NULL = -1000
 
 def F2C(degrees):
+    if degrees == NULL:
+        return NULL
     return (degrees - 32)*5/9
 
 
 def C2F(degrees):
+    if degrees == NULL:
+        return NULL
     return degrees*9/5 + 32
 
 def archive_temp(temp):
@@ -39,8 +44,9 @@ def get_temp():
         sensor = W1ThermSensor()
         temperature = sensor.get_temperature()
         archive_temp(temperature)
-    except (SensorNotReadyError, NoSensorFoundError) as e:
-        print(e)
+    except (SensorNotReadyError, NoSensorFoundError, ResetValueError) as e:
+        print("Caught Error: ", e)
+        archive_temp(NULL)
         return False
     return temperature
     
