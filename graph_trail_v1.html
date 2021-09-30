@@ -31,7 +31,7 @@ window.onload = buildGraph;
 TO ADD:
 
 POST reuqests to send min text and max text
-
+// -1000 = null value
 
 */
 var update = setInterval(buildGraph, 1000);
@@ -52,7 +52,7 @@ var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
 var currentTime = recievedData.data["current_time"];
 
-console.log(recievedData);
+//console.log(recievedData);
 
 minTemp = recievedData.data["min_temp"];
 maxTemp = recievedData.data["max_temp"];
@@ -64,6 +64,7 @@ phoneNumber = "" + areaCode + number;
 provider = recievedData.data["provider"];
 
 var pluggedIn = recievedData.data["thermometer_plugged_in"];
+console.log(pluggedIn);
 
 if(init){
 	document.getElementById("minTemp").value = minTemp;
@@ -80,16 +81,18 @@ var dataSeries = { type: "line", axisYType: "secondary"};			//type of graph
 var dataPoints = [];						//adds the current data point to the data var for graphing
 var newestTemp;
 
-var start = currentTime - times[299] - 1;	//seems to be -1 most of the time... sometimes it's 0...
-console.log(start);
-
 for(var i = 0; i < limit; i++){						//this is where we will load our data
-	if(i >= (limit - start)){
-		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
-		y = null;
+	var val = parseInt(tempF[i]);
+	if(i > 0){
+		var prevVal = parseInt(tempF[i-1]);
 	}
-	else if(i > 0 && times[i] - times[i-1] > 1){
-		y = null;
+
+	if(val == -1000 || prevVal == -1000){
+		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
+		dataPoints.push({
+			x: 300-i,
+			y: null
+		});
 	}
 	else if(showingF){
 		y = tempF[i];
@@ -99,6 +102,7 @@ for(var i = 0; i < limit; i++){						//this is where we will load our data
 		y = tempC[i];
 		document.getElementById("warnings").innerHTML = "";
 	}
+
 	var point = 300 - i;
 	if(tempC[i] > maxTemp || tempC[i] < minTemp){
 		dataPoints.push({
