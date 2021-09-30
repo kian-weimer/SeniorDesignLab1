@@ -3,7 +3,7 @@
 <head>
 <script>
 var chart;
-var ip = "192.168.6.125";
+var ip = "192.168.14.125";
 
 var showingF = true;
 var tempEdit = true;
@@ -32,9 +32,120 @@ window.onload = buildGraph;
 
 
 var update = setInterval(buildGraph, 1000);
+var dataPts = null;
 
 function buildGraph(){
-var recievedData = JSON.parse(getData());		//get data from our server
+  getData();
+}
+
+function updateAxisRange(){    	   	
+  axisXMax += 1;
+  axisXMin += 1;
+  chart.options.axisX.viewportMaximum = axisXMax;
+  chart.options.axisX.viewportMinimum = axisXMin;
+  chart.render();		
+}
+
+
+function changeButton(){
+	if(showingF){
+		document.getElementById("tempButton").classList.add("tempFButton");
+		document.getElementById("tempButton").classList.remove("tempCButton");
+		document.getElementById("tempButton").innerHTML = "Show Fahrenheit";
+	}
+	else{
+		document.getElementById("tempButton").classList.add("tempCButton");
+		document.getElementById("tempButton").classList.remove("tempFButton");
+		document.getElementById("tempButton").innerHTML = "Show Celsius";
+	}
+	showingF = !showingF;
+	buildGraph();
+}
+
+function changeDisplay(){
+	var on = true;
+	if(document.getElementById("displayButton").innerHTML == "Turn on display"){
+		document.getElementById("displayButton").innerHTML = "Turn off display";
+		on = true;
+	}
+	else{
+		document.getElementById("displayButton").innerHTML = "Turn on display";
+		on = false;
+	}
+	postData(on);
+}
+
+function postData(on){
+	var xmlHttp = new XMLHttpRequest();
+	if(on){
+		xmlHttp.open( "POST", "http://" + ip + ":5010/users?LCDStatus=\"ON\"", false );
+	}
+	else{
+		xmlHttp.open( "POST", "http://" + ip + ":5010/users?LCDStatus=\"OFF\"", false );
+	}
+	xmlHttp.send(null);
+    return xmlHttp.response;
+}
+
+function postMinAndMax(){
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?min_temp=" + minTemp + "&max_temp=" + maxTemp, false );
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
+function postPhoneNumber(){
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?area_code=" + areaCode + "&phone_number=" + number + "&provider=" + provider, false );
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
+var entityMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;'
+};
+
+function postMinText(){
+	var xmlHttp = new XMLHttpRequest();
+	var minText = document.getElementById("minText").value;
+
+	minText = minText.replace(/ /g, '%20');
+
+	minText = String(minText).replace(/[&<>"'`=\/]/g, function (s) {
+    return entityMap[s];
+  });
+
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?hot_message=" + minText);
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
+function postMaxText(){
+	var xmlHttp = new XMLHttpRequest();
+	var maxText = document.getElementById("maxTextButton").value;
+	maxText = maxText.replace(/ /g, '%20');
+
+	maxText = String(maxText).replace(/[&<>"'`=\/]/g, function (s) {
+    return entityMap[s];
+  });
+
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?cold_message=" + maxText);
+	xmlHttp.send(null);
+  return xmlHttp.response;
+}
+
+var worker = new Worker("worker.js");
+  worker.onmessage = function(event) {
+alert(event.data)
+
+var recievedData = JSON.parse(event.data);		//get data from our server
 
 if(recievedData.message == "Internal Server Error"){
 	document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
@@ -137,7 +248,7 @@ else{
 var xLabel = "seconds ago from the current time";
 var options = {
 	zoomEnabled: true,
-	rangeChanged: function(e) {   
+	rangeChanged: function(e) {
     if(e.trigger === "zoom") {
       axisXMax = e.axisX[0].viewportMaximum + 1;
       axisXMin = e.axisX[0].viewportMinimum + 1;
@@ -145,7 +256,7 @@ var options = {
       if(updateRange > 0){
       	clearInterval(updateRange);
       }
-      updateRange = setInterval(updateAxisRange(), 1000); 
+      updateRange = setInterval(updateAxisRange(), 1000);
     }
     else if(e.trigger == "reset") {
       resetFlag = true;
@@ -173,131 +284,32 @@ var options = {
 		viewportMaximum: axisXMax
 	},
 	data: data  // temp data
-};
+  };
 
-chart = new CanvasJS.Chart("chartContainer", options);
+  chart = new CanvasJS.Chart("chartContainer", options);
 
-var startTime = new Date();		//start render timer
-chart.render();					//adds the data to the chart
-var endTime = new Date();		//end render timer
-document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
-document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
-var unit = "F";
-if(!showingF){
-	unit = "C";
-}
-document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
-}
+  var startTime = new Date();		//start render timer
+  chart.render();					//adds the data to the chart
+  var endTime = new Date();		//end render timer
+  document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
+  document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
+  var unit = "F";
+  if(!showingF){
+    unit = "C";
+  }
+  document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
 
-function updateAxisRange(){    	   	
-  axisXMax += 1;
-  axisXMin += 1;
-  chart.options.axisX.viewportMaximum = axisXMax;
-  chart.options.axisX.viewportMinimum = axisXMin;
-  chart.render();		
-}
-
-
-function changeButton(){
-	if(showingF){
-		document.getElementById("tempButton").classList.add("tempFButton");
-		document.getElementById("tempButton").classList.remove("tempCButton");
-		document.getElementById("tempButton").innerHTML = "Show Fahrenheit";
-	}
-	else{
-		document.getElementById("tempButton").classList.add("tempCButton");
-		document.getElementById("tempButton").classList.remove("tempFButton");
-		document.getElementById("tempButton").innerHTML = "Show Celsius";
-	}
-	showingF = !showingF;
-	getData();
-	buildGraph();
-}
-
-function changeDisplay(){
-	var on = true;
-	if(document.getElementById("displayButton").innerHTML == "Turn on display"){
-		document.getElementById("displayButton").innerHTML = "Turn off display";
-		on = true;
-	}
-	else{
-		document.getElementById("displayButton").innerHTML = "Turn on display";
-		on = false;
-	}
-	postData(on);
-}
-
-function postData(on){
-	var xmlHttp = new XMLHttpRequest();
-	if(on){
-		xmlHttp.open( "POST", "http://" + ip + ":5010/users?LCDStatus=\"ON\"", false );
-	}
-	else{
-		xmlHttp.open( "POST", "http://" + ip + ":5010/users?LCDStatus=\"OFF\"", false );
-	}
-	xmlHttp.send(null);
-    return xmlHttp.response;
-}
-
-function postMinAndMax(){
-	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "POST", "http://" + ip + ":5010/users?min_temp=" + minTemp + "&max_temp=" + maxTemp, false );
-	xmlHttp.send(null);
-  return xmlHttp.response;
-}
-
-function postPhoneNumber(){
-	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "POST", "http://" + ip + ":5010/users?area_code=" + areaCode + "&phone_number=" + number + "&provider=" + provider, false );
-	xmlHttp.send(null);
-  return xmlHttp.response;
-}
-
-var entityMap = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-  '/': '&#x2F;',
-  '`': '&#x60;',
-  '=': '&#x3D;'
-};
-
-function postMinText(){
-	var xmlHttp = new XMLHttpRequest();
-	var minText = document.getElementById("minText").value;
-
-	minText = minText.replace(/ /g, '%20');
-
-	minText = String(minText).replace(/[&<>"'`=\/]/g, function (s) {
-    return entityMap[s];
-  });
-
-	xmlHttp.open( "POST", "http://" + ip + ":5010/users?hot_message=" + minText);
-	xmlHttp.send(null);
-  return xmlHttp.response;
-}
-
-function postMaxText(){
-	var xmlHttp = new XMLHttpRequest();
-	var maxText = document.getElementById("maxTextButton").value;
-	maxText = maxText.replace(/ /g, '%20');
-
-	maxText = String(maxText).replace(/[&<>"'`=\/]/g, function (s) {
-    return entityMap[s];
-  });
-
-	xmlHttp.open( "POST", "http://" + ip + ":5010/users?cold_message=" + maxText);
-	xmlHttp.send(null);
-  return xmlHttp.response;
-}
+  };
 
 function getData(){
-	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
-	xmlHttp.send(null);
-  return xmlHttp.response;
+	//var xmlHttp = new XMLHttpRequest();
+	//xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
+    //xmlHttp.timeout = 500
+    //xhr.ontimeout = function (e) {
+    //  return "Null"
+    //};
+	//xmlHttp.send(null);
+  worker.postMessage(ip);
 }
 
 function editMaxMin(){
