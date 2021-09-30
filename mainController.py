@@ -17,16 +17,19 @@ import sqlite3 as sl
 SERVER_FILE = '/home/pi/SeniorDesignLab1/data.db'
 
 lcd = LCD()
-
+glo = 0
+on = False
 
 def button_activated(channel):
-    print("on or off: ", LCD.website_on.value)
-    if not GPIO.input(16):
+    global on
+    if not on:
         lcd.on(True)
+        on=True
     elif(not LCD.website_on.value):
         lcd.on(False)
+        on=False
         
-
+        
 if __name__ == '__main__':
     #should be adjustable on the website
     alert_sent = 'good'
@@ -36,8 +39,6 @@ if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
-    
-    #GPIO.setup(13,GPIO.OUT, pull_up_down=GPIO.PUD_UP)
 
     # Server communication\
     thermometer_plugged_in = Value(c_bool, False)
@@ -53,15 +54,13 @@ if __name__ == '__main__':
     while True:
         start_time = time.time()
         temp = lcd.get_and_print_temp_on()
-        print("TEMP: ")
-        print(temp)
 
         if type(temp) != int and not temp:
             thermometer_plugged_in.value = False
         else:
             if not thermometer_plugged_in.value:
                 thermometer_plugged_in.value = True
-            print(phone_number.value)
+            
             if phone_number.value != 0:
                 if(temp > max_temp.value and alert_sent == "good"):
                     alert_sent = "hot"
@@ -85,5 +84,5 @@ if __name__ == '__main__':
             
         delay = time.time() - start_time
         if delay < 1:
-           time.sleep(1 - delay) # wait for the remaining time in 1s  
-        
+           time.sleep(1 - delay) # wait for the remaining time in 1s
+    

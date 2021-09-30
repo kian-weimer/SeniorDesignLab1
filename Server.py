@@ -46,7 +46,15 @@ class Server(Resource):
     area_code = None
 
     def get(self):
-        data = pd.read_csv(TEMP_FILE)  # read local CSV
+        try:
+            data = pd.read_csv(TEMP_FILE)  # read local CSV
+        except EmptyDataError as e:
+            time.sleep(0.15)
+            try:
+                data = pd.read_csv(TEMP_FILE)
+            except EmptyDataError as e:
+                return {'data': "Error CSV File cannot be read!"}, 500
+                
         data = data.to_dict()  # convert dataframe to dict
         data["current_time"] = round(time.time())
 
@@ -109,12 +117,10 @@ class Server(Resource):
             Server.area_code.value = int(args['area_code'])
             with sl.connect(SERVER_FILE) as sq_data:
                 sql = '''UPDATE VARS SET phone_number = ''' + str(Server.phone_number.value) + ''';'''
-                print(sql)
                 sq_data.execute(sql)
                 sql = '''UPDATE VARS SET area_code = ''' + str(Server.area_code.value) + ''';'''
                 sq_data.execute(sql)
                 sql = '''UPDATE VARS SET provider = \"''' + args['provider'] + '''\";'''
-                print(sql)
                 sq_data.execute(sql)
             
             return {'data': {'msg': 'Success, New phone number: ' + str(Server.area_code.value) + str(Server.phone_number.value) + " = " + args['area_code'] + args['phone_number']}}, 200  # return data with 200 OK

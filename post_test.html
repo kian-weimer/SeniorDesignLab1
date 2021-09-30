@@ -18,7 +18,7 @@
 	    var xmlHttp = new XMLHttpRequest();
         var params = "LCDStatus=ON";
         
-        xmlHttp.open( "POST", "http://192.168.0.146:5010/users?phone_number=4409502&area_code=319&provider=abcd", false ); // false for synchronous request
+        xmlHttp.open( "POST", "http://192.168.6.125:5010/users?min_temp=20&max_temp=28", false ); // false for synchronous request
 
         xmlHttp.send( null );
 
