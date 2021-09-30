@@ -3,7 +3,7 @@
 <head>
 <script>
 var chart;
-var ip = "192.168.6.125";
+var ip = "192.168.144.125";
 
 var showingF = true;
 var tempEdit = true;
@@ -16,7 +16,11 @@ var provider;
 
 var minTemp;
 var maxTemp;
+var dataPoints = [];
+var tempF;
+var tempC;
 
+var limit;
 var init = true;
 
 var axisXMax = 0;
@@ -32,161 +36,10 @@ window.onload = buildGraph;
 
 
 var update = setInterval(buildGraph, 1000);
+var dataPts = null;
 
 function buildGraph(){
-var recievedData = JSON.parse(getData());		//get data from our server
-
-if(recievedData.message == "Internal Server Error"){
-	document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
-	return
-}
-else{
-	document.getElementById("warnings").innerHTML = "";
-}
-
-var times = recievedData.data["Time(s)"];
-var tempF = recievedData.data["Temp(F)"];
-var tempC = recievedData.data["Temp(C)"];
-var currentTime = recievedData.data["current_time"];
-
-minTemp = recievedData.data["min_temp"];
-maxTemp = recievedData.data["max_temp"];
-
-areaCode = recievedData.data["area_code"];
-number = recievedData.data["phone_number"];
-phoneNumber = "" + areaCode + number;
-
-provider = recievedData.data["provider"];
-
-var pluggedIn = recievedData.data["thermometer_plugged_in"];
-
-if(init){
-	document.getElementById("minTemp").value = minTemp;
-	document.getElementById("maxTemp").value = maxTemp;
-	document.getElementById("phoneNum").value = phoneNumber;
-	document.getElementById("providers").value = provider;
-	init = false;
-}
-
-var limit = 300;		//number y-axis data points
-var y = 50;    			//starting point of the data (only applicable for the example)
-var data = [];								//var to hold the temp information
-var dataSeries = { type: "line", axisYType: "secondary"};			//type of graph
-var dataPoints = [];						//adds the current data point to the data var for graphing
-var newestTemp;
-
-for(var i = 0; i < limit; i++){						//this is where we will load our data
-	var val = parseInt(tempF[i]);
-	if(i > 0){
-		var prevVal = parseInt(tempF[i-1]);
-	}
-
-	if(val == -1000 || prevVal == -1000){
-		document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
-		dataPoints.push({
-			x: 300-i,
-			y: null
-		});
-	}
-	else if(showingF){
-		y = tempF[i];
-		document.getElementById("warnings").innerHTML = "";
-	}
-	else{
-		y = tempC[i];
-		document.getElementById("warnings").innerHTML = "";
-	}
-
-	var point = 300 - i;
-	if(tempC[i] > maxTemp || tempC[i] < minTemp){
-		dataPoints.push({
-			x: point,
-			y: y,
-			lineColor:"red",
-			markerColor: "red", markerType: "cross"
-		});
-	}
-	else{
-		dataPoints.push({
-			x: point,
-			y: y
-		});
-	}
-	if(i == 299){
-		newestTemp = y;
-	}
-}
-
-dataSeries.dataPoints = dataPoints;
-data.push(dataSeries);
-
-var title;
-var min;
-var max;
-if(showingF){
-	title = "Temperature in F";
-	min = 50;
-	max = 122;
-}
-else{
-	title = "Temperature in C";
-	min = 10;
-	max = 50;
-}
-
-var xLabel = "seconds ago from the current time";
-var options = {
-	zoomEnabled: true,
-	rangeChanged: function(e) {   
-    if(e.trigger === "zoom") {
-      axisXMax = e.axisX[0].viewportMaximum + 1;
-      axisXMin = e.axisX[0].viewportMinimum + 1;
-      resetFlag = false;
-      if(updateRange > 0){
-      	clearInterval(updateRange);
-      }
-      updateRange = setInterval(updateAxisRange(), 1000); 
-    }
-    else if(e.trigger == "reset") {
-      resetFlag = true;
-      axisXMax = 299;
-      axisXMin = 0;
-      updateAxisRange();
-      clearInterval(updateRange);
-    }
-  },
-	animationEnabled: false,		//adds the special effect on startup/refresh
-	title: {
-		text: title
-	},
-	axisY2: {
-		lineThickness: 1,
-		includeZero: true,
-		minimum: min,
-		maximum: max
-	},
-	axisX: {
-		text: xLabel,
-		reversed:  true,
-		title: "seconds ago from the current time",
-		viewportMinimum: axisXMin,
-		viewportMaximum: axisXMax
-	},
-	data: data  // temp data
-};
-
-chart = new CanvasJS.Chart("chartContainer", options);
-
-var startTime = new Date();		//start render timer
-chart.render();					//adds the data to the chart
-var endTime = new Date();		//end render timer
-document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
-document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
-var unit = "F";
-if(!showingF){
-	unit = "C";
-}
-document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
+  getData();
 }
 
 function updateAxisRange(){    	   	
@@ -210,7 +63,6 @@ function changeButton(){
 		document.getElementById("tempButton").innerHTML = "Show Celsius";
 	}
 	showingF = !showingF;
-	getData();
 	buildGraph();
 }
 
@@ -293,11 +145,184 @@ function postMaxText(){
   return xmlHttp.response;
 }
 
+var worker = new Worker("worker.js");
+worker.onmessage = function(event) {
+  //alert(event.data)
+  if(event.data === "Null"){
+    document.getElementById("warnings").innerHTML = "<h2>No data available</h2>";
+    dataPoints.shift();
+    dataLen = dataPoints.length
+    for(var i = 0; i < dataLen; i ++){
+      dataPoints[i]['x'] = dataPoints[i]['x'] +1
+    }
+    dataPoints.push({x:0, y:null});
+  }
+  var dataSeries = {type: "line", axisYType: "secondary"};			//type of graph
+  var data = [];
+  if(event.data !== "Null") {
+
+    var recievedData = JSON.parse(event.data);		//get data from our server
+
+    if (recievedData.message == "Internal Server Error") {
+      document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
+      return
+    } else {
+      document.getElementById("warnings").innerHTML = "";
+    }
+
+    var times = recievedData.data["Time(s)"];
+    tempF = recievedData.data["Temp(F)"];
+    tempC = recievedData.data["Temp(C)"];
+    var currentTime = recievedData.data["current_time"];
+
+    minTemp = recievedData.data["min_temp"];
+    maxTemp = recievedData.data["max_temp"];
+
+    areaCode = recievedData.data["area_code"];
+    number = recievedData.data["phone_number"];
+    phoneNumber = "" + areaCode + number;
+
+    provider = recievedData.data["provider"];
+
+    var pluggedIn = recievedData.data["thermometer_plugged_in"];
+
+    if (init) {
+      document.getElementById("minTemp").value = minTemp;
+      document.getElementById("maxTemp").value = maxTemp;
+      document.getElementById("phoneNum").value = phoneNumber;
+      document.getElementById("providers").value = provider;
+      init = false;
+    }
+
+    limit = 300;		//number y-axis data points
+    var y = 50;    			//starting point of the data (only applicable for the example)
+    var data = [];								//var to hold the temp information
+
+    var newestTemp;
+    dataPoints = [];
+
+    for (var i = 0; i < limit; i++) {						//this is where we will load our data
+      var val = parseInt(tempF[i]);
+      if (i > 0) {
+        var prevVal = parseInt(tempF[i - 1]);
+      }
+
+      if (val == -1000 || prevVal == -1000) {
+        document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
+        dataPoints.push({
+          x: 300 - i,
+          y: null
+        });
+      } else if (showingF) {
+        y = tempF[i];
+        document.getElementById("warnings").innerHTML = "";
+      } else {
+        y = tempC[i];
+        document.getElementById("warnings").innerHTML = "";
+      }
+
+      var point = 300 - i;
+      if (tempC[i] > maxTemp || tempC[i] < minTemp) {
+        dataPoints.push({
+          x: point,
+          y: y,
+          lineColor: "red",
+          markerColor: "red", markerType: "cross"
+        });
+      } else {
+        dataPoints.push({
+          x: point,
+          y: y
+        });
+      }
+      if (i == 299) {
+        newestTemp = y;
+      }
+    }
+  }
+
+  dataSeries.dataPoints = dataPoints;
+  data.push(dataSeries);
+
+  var title;
+  var min;
+  var max;
+  if(showingF){
+      title = "Temperature in F";
+      min = 50;
+      max = 122;
+  }
+  else{
+      title = "Temperature in C";
+      min = 10;
+      max = 50;
+  }
+
+  var xLabel = "seconds ago from the current time";
+  var options = {
+  zoomEnabled: true,
+  rangeChanged: function(e) {
+    if(e.trigger === "zoom") {
+      axisXMax = e.axisX[0].viewportMaximum + 1;
+      axisXMin = e.axisX[0].viewportMinimum + 1;
+      resetFlag = false;
+      if(updateRange > 0){
+        clearInterval(updateRange);
+      }
+      updateRange = setInterval(updateAxisRange(), 1000);
+    }
+    else if(e.trigger == "reset") {
+        resetFlag = true;
+        axisXMax = 299;
+        axisXMin = 0;
+        updateAxisRange();
+        clearInterval(updateRange);
+    }
+  },
+	animationEnabled: false,		//adds the special effect on startup/refresh
+	title: {
+		text: title
+	},
+	axisY2: {
+		lineThickness: 1,
+		includeZero: true,
+		minimum: min,
+		maximum: max
+	},
+	axisX: {
+		text: xLabel,
+		reversed:  true,
+		title: "seconds ago from the current time",
+		viewportMinimum: axisXMin,
+		viewportMaximum: axisXMax
+	},
+	data: data  // temp data
+  };
+
+  chart = new CanvasJS.Chart("chartContainer", options);
+
+  var startTime = new Date();		//start render timer
+  chart.render();					//adds the data to the chart
+  var endTime = new Date();		//end render timer
+  document.getElementById("timeToRender").innerHTML = "Time to Render: " + (endTime - startTime) + "ms";	//time to render info
+  document.getElementById("whiteCover").innerHTML = "this will cover";	//white cover
+  var unit = "F";
+  if(!showingF){
+    unit = "C";
+  }
+  document.getElementById("tempDisplay").innerHTML = newestTemp + " degrees " + unit;
+
+};
+
 function getData(){
-	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
-	xmlHttp.send(null);
-  return xmlHttp.response;
+	//var xmlHttp = new XMLHttpRequest();
+	//xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
+    //xmlHttp.timeout = 500
+    //xhr.ontimeout = function (e) {
+    //  return "Null"
+    //};
+	//xmlHttp.send(null);
+  worker.postMessage(ip);
 }
 
 function editMaxMin(){
