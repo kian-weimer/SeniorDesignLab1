@@ -27,6 +27,7 @@ var resetFlag = false;
 
 window.onload = buildGraph;
 
+
 /*
 TO ADD:
 
@@ -52,8 +53,6 @@ var tempF = recievedData.data["Temp(F)"];
 var tempC = recievedData.data["Temp(C)"];
 var currentTime = recievedData.data["current_time"];
 
-//console.log(recievedData);
-
 minTemp = recievedData.data["min_temp"];
 maxTemp = recievedData.data["max_temp"];
 
@@ -64,7 +63,6 @@ phoneNumber = "" + areaCode + number;
 provider = recievedData.data["provider"];
 
 var pluggedIn = recievedData.data["thermometer_plugged_in"];
-console.log(pluggedIn);
 
 if(init){
 	document.getElementById("minTemp").value = minTemp;
@@ -302,8 +300,8 @@ function postMaxText(){
 function getData(){
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open( "GET", "http://" + ip + ":5010/users", false ); // false for synchronous request
-    xmlHttp.send(null);
-    return xmlHttp.response;
+	xmlHttp.send(null);
+  return xmlHttp.response;
 }
 
 function editMaxMin(){
