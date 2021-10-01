@@ -22,15 +22,29 @@ def C2F(degrees):
 def archive_temp(temp):
     import os.path
     if os.path.isfile(TEMP_FILE):
-        try:
-            df = pd.read_csv(TEMP_FILE)
-            pd.read_csv(TEMP_FILE, usecols=['Time(s)', 'Temp(F)', 'Temp(C)'])
-            df2 = pd.DataFrame([[round(time.time()), C2F(temp), temp]], columns=['Time(s)', 'Temp(F)', 'Temp(C)'], index=['x'])
-            df = df.append(df2, ignore_index=True)
-        except EmptyDataError as e:
+        finished = false
+        tries = 4
+        while not finished and tries > 0:
+            try:
+                df = pd.read_csv(TEMP_FILE)
+                pd.read_csv(TEMP_FILE, usecols=['Time(s)', 'Temp(F)', 'Temp(C)'])
+                df2 = pd.DataFrame([[round(time.time()), C2F(temp), temp]], columns=['Time(s)', 'Temp(F)', 'Temp(C)'], index=['x'])
+                df = df.append(df2, ignore_index=True)
+                finished = True
+            except EmptyDataError as e:
+                tries = tries - 1
+                time.sleep(0.05)
+        if tries == 0:
             df = pd.DataFrame([[round(time.time()), C2F(temp), temp]], columns=['Time(s)', 'Temp(F)', 'Temp(C)'], index=['x'])
+            for i in range(300):
+                df2 = pd.DataFrame([[round(time.time()), NULL, NULL]], columns=['Time(s)', 'Temp(F)', 'Temp(C)'], index=['x'])
+                df = df.append(df2, ignore_index=True)   
+        
     else:
         df = pd.DataFrame([[round(time.time()), C2F(temp), temp]], columns=['Time(s)', 'Temp(F)', 'Temp(C)'], index=['x'])
+        for i in range(300):
+            df2 = pd.DataFrame([[round(time.time()), NULL, NULL]], columns=['Time(s)', 'Temp(F)', 'Temp(C)'], index=['x'])
+            df = df.append(df2, ignore_index=True)        
 
     df_len = len(df.index)
     if df_len > 300:
