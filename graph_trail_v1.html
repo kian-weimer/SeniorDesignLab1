@@ -119,28 +119,30 @@ var entityMap = {
 function postMinText(){
 	var xmlHttp = new XMLHttpRequest();
 	var minText = document.getElementById("minText").value;
-
+    alert(minText)
 	minText = minText.replace(/ /g, '%20');
 
 	minText = String(minText).replace(/[&<>"'`=\/]/g, function (s) {
-    return entityMap[s];
+    return '';
   });
+    alert(minText)
 
-	xmlHttp.open( "POST", "http://" + ip + ":5010/users?hot_message=" + minText);
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?cold_message=" + minText);
 	xmlHttp.send(null);
   return xmlHttp.response;
 }
 
 function postMaxText(){
 	var xmlHttp = new XMLHttpRequest();
-	var maxText = document.getElementById("maxTextButton").value;
+	var maxText = document.getElementById("maxText").value;
+    alert(maxText)
 	maxText = maxText.replace(/ /g, '%20');
 
 	maxText = String(maxText).replace(/[&<>"'`=\/]/g, function (s) {
-    return entityMap[s];
+    return '';
   });
 
-	xmlHttp.open( "POST", "http://" + ip + ":5010/users?cold_message=" + maxText);
+	xmlHttp.open( "POST", "http://" + ip + ":5010/users?hot_message=" + maxText);
 	xmlHttp.send(null);
   return xmlHttp.response;
 }
@@ -149,7 +151,7 @@ var worker = new Worker("worker.js");
 worker.onmessage = function(event) {
   //alert(event.data)
   if(event.data === "Null"){
-    document.getElementById("warnings").innerHTML = "<h2>No data available</h2>";
+    document.getElementById("warnings").innerHTML = "<h2>No Data Available</h2>";
     dataPoints.shift();
     dataLen = dataPoints.length
     for(var i = 0; i < dataLen; i ++){
@@ -163,7 +165,7 @@ worker.onmessage = function(event) {
 
     var recievedData = JSON.parse(event.data);		//get data from our server
 
-    if (recievedData.message == "Internal Server Error") {
+    if (recievedData.message === "Internal Server Error") {
       document.getElementById("warnings").innerHTML = "<h2>Internal Server Error. No data to show.</h2>";
       return
     } else {
@@ -203,12 +205,9 @@ worker.onmessage = function(event) {
 
     for (var i = 0; i < limit; i++) {						//this is where we will load our data
       var val = parseInt(tempF[i]);
-      if (i > 0) {
-        var prevVal = parseInt(tempF[i - 1]);
-      }
 
-      if (val === -1000 || prevVal === -1000) {
-        document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
+      if (val === -1000) {
+        document.getElementById("warnings").innerHTML = "<h2>Unplugged Sensor</h2>";
         dataPoints.push({
           x: 300 - i,
           y: null
@@ -222,14 +221,14 @@ worker.onmessage = function(event) {
       }
 
       var point = 300 - i;
-      if ((tempC[i] > maxTemp || tempC[i] < minTemp) && (val !== -1000 || prevVal !== -1000)) {
+      if ((tempC[i] > maxTemp || tempC[i] < minTemp) && (val !== -1000)) {
         dataPoints.push({
           x: point,
           y: y,
           lineColor: "red",
           markerColor: "red", markerType: "cross"
         });
-      } else if(val !== -1000 || prevVal !== -1000) {
+      } else if(val !== -1000) {
         dataPoints.push({
           x: point,
           y: y
