@@ -207,7 +207,7 @@ worker.onmessage = function(event) {
         var prevVal = parseInt(tempF[i - 1]);
       }
 
-      if (val == -1000 || prevVal == -1000) {
+      if (val === -1000 || prevVal === -1000) {
         document.getElementById("warnings").innerHTML = "<h2>The sensor has been disconnected!!!</h2>";
         dataPoints.push({
           x: 300 - i,
@@ -222,14 +222,14 @@ worker.onmessage = function(event) {
       }
 
       var point = 300 - i;
-      if (tempC[i] > maxTemp || tempC[i] < minTemp) {
+      if ((tempC[i] > maxTemp || tempC[i] < minTemp) && (val !== -1000 || prevVal !== -1000)) {
         dataPoints.push({
           x: point,
           y: y,
           lineColor: "red",
           markerColor: "red", markerType: "cross"
         });
-      } else {
+      } else if(val !== -1000 || prevVal !== -1000) {
         dataPoints.push({
           x: point,
           y: y
