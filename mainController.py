@@ -5,6 +5,7 @@ import signal
 import sys
 import time
 from LCD import LCD
+import ThermometerCode
 
 from multiprocessing import Process, Queue, Value, Manager
 from ctypes import c_bool, c_char_p
@@ -39,6 +40,8 @@ if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(16, GPIO.BOTH, callback=button_activated, bouncetime=50)
+    
+    ThermometerCode.init()
 
     # Server communication\
     thermometer_plugged_in = Value(c_bool, False)

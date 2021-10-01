@@ -1,6 +1,7 @@
 import time
 from w1thermsensor import W1ThermSensor
 from w1thermsensor.errors import SensorNotReadyError, NoSensorFoundError, ResetValueError
+import os.path
 
 import pandas as pd
 from pandas.errors import EmptyDataError
@@ -19,10 +20,23 @@ def C2F(degrees):
         return NULL
     return degrees*9/5 + 32
 
-def archive_temp(temp):
-    import os.path
+
+def init():
     if os.path.isfile(TEMP_FILE):
-        finished = false
+        df = pd.read_csv(TEMP_FILE)
+        print(df.iloc[-1, 0])
+        current_time = round(time.time())
+        print(current_time)
+        diff = current_time - df.iloc[-1, 0]
+        if diff > 300 :
+            diff = 300
+        for i in range(diff):
+            archive_temp(NULL)      
+
+
+def archive_temp(temp):
+    if os.path.isfile(TEMP_FILE):
+        finished = False
         tries = 4
         while not finished and tries > 0:
             try:
